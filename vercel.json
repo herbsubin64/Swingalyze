@@ -1,0 +1,60 @@
+{
+  "version": 2,
+  "framework": "nextjs",
+  "buildCommand": "next build",
+  "outputDirectory": ".next",
+  "installCommand": "yarn install",
+  "devCommand": "next dev",
+  "regions": ["iad1"],
+  "functions": {
+    "app/api/**/*.js": {
+      "maxDuration": 30
+    }
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        },
+        {
+          "key": "Access-Control-Allow-Credentials",
+          "value": "true"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/instant-demo",
+      "destination": "/analyze",
+      "permanent": false
+    },
+    {
+      "source": "/demo",
+      "destination": "/analyze", 
+      "permanent": false
+    },
+    {
+      "source": "/working-demo",
+      "destination": "/analyze",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    }
+  ]
+}
