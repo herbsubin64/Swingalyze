@@ -1,60 +1,16 @@
 {
   "version": 2,
-  "framework": "nextjs",
-  "buildCommand": "next build",
-  "outputDirectory": ".next",
-  "installCommand": "yarn install",
-  "devCommand": "next dev",
-  "regions": ["iad1"],
-  "functions": {
-    "app/api/**/*.js": {
-      "maxDuration": 30
-    }
-  },
+  "routes": [
+    { "src": "/favicon.ico", "dest": "/favicon.ico" }
+  ],
   "headers": [
     {
-      "source": "/api/(.*)",
+      "source": "/(.*)",
       "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, PUT, DELETE, OPTIONS"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization"
-        },
-        {
-          "key": "Access-Control-Allow-Credentials",
-          "value": "true"
-        }
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
       ]
-    }
-  ],
-  "redirects": [
-    {
-      "source": "/instant-demo",
-      "destination": "/analyze",
-      "permanent": false
-    },
-    {
-      "source": "/demo",
-      "destination": "/analyze", 
-      "permanent": false
-    },
-    {
-      "source": "/working-demo",
-      "destination": "/analyze",
-      "permanent": false
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
     }
   ]
 }
