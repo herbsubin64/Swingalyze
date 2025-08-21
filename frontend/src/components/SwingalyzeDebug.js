@@ -53,30 +53,38 @@ function OverlayToggles() {
 }
 
 function MetricsStrip({ m }) {
-  const items = [
-    { label: "Club Path", value: `${m?.clubPathDeg ?? +2.1}°`, icon: Ruler },
-    { label: "Face to Path", value: `${m?.faceToPathDeg ?? -1.3}°`, icon: Gauge },
-    { label: "Attack Angle", value: `${m?.attackAngleDeg ?? -4.6}°`, icon: ChevronRight },
-    { label: "Tempo (3:1)", value: `${m?.tempoRatio ?? 3.02}`, icon: TimerReset },
+  const enhancedMetrics = [
+    { 
+      label: "Club Path", 
+      value: `${m?.clubPathDeg ?? +2.1}°`, 
+      numericValue: m?.clubPathDeg ?? 2.1,
+      hint: "swing path",
+      status: m?.clubPathDeg > 0 ? (m?.clubPathDeg > 3 ? 'poor' : 'average') : 'good'
+    },
+    { 
+      label: "Face to Path", 
+      value: `${m?.faceToPathDeg ?? -1.3}°`, 
+      numericValue: Math.abs(m?.faceToPathDeg ?? -1.3),
+      hint: "club face angle",
+      status: Math.abs(m?.faceToPathDeg ?? -1.3) < 2 ? 'good' : 'average'
+    },
+    { 
+      label: "Attack Angle", 
+      value: `${m?.attackAngleDeg ?? -4.6}°`, 
+      numericValue: m?.attackAngleDeg ?? -4.6,
+      hint: "impact angle",
+      status: (m?.attackAngleDeg ?? -4.6) > -6 && (m?.attackAngleDeg ?? -4.6) < -2 ? 'good' : 'average'
+    },
+    { 
+      label: "Tempo", 
+      value: `${m?.tempoRatio ?? 3.02}:1`, 
+      numericValue: m?.tempoRatio ?? 3.02,
+      hint: "backswing:downswing",
+      status: (m?.tempoRatio ?? 3.02) > 2.5 && (m?.tempoRatio ?? 3.02) < 3.5 ? 'good' : 'average'
+    },
   ];
   
-  return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-      {items.map(({ label, value, icon: Icon }) => (
-        <div key={label} className="bg-white/5 backdrop-blur-md rounded-xl p-4 border border-white/10">
-          <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-green-600/20 p-2">
-              <Icon className="h-4 w-4 text-green-400" />
-            </div>
-            <div>
-              <div className="text-xs text-gray-400">{label}</div>
-              <div className="text-sm font-semibold text-white">{value}</div>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
+  return <EnhancedMetricCards metrics={enhancedMetrics} />;
 }
 
 function PhaseChips({ tips }) {
