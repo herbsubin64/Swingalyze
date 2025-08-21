@@ -396,7 +396,7 @@ export default function SwingalyzeDebug() {
                 ))}
               </div>
               <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl border border-white/20 transition-colors">
-                <Compare className="h-4 w-4" /> Open Comparator
+                <GitCompare className="h-4 w-4" /> Open Comparator
               </button>
             </div>
           </div>
