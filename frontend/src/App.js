@@ -622,6 +622,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/analyze" element={<SwingAnalysis />} />
           <Route path="/progress" element={<ProgressTracking />} />
+          <Route path="/debug" element={<SwingalyzeDebug />} />
         </Routes>
       </BrowserRouter>
     </div>
