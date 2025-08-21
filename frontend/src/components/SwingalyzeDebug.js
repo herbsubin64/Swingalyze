@@ -2,7 +2,7 @@ import React, { useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Upload, Play, Gauge, Ruler, TimerReset, Sparkles, ChevronRight,
-  CheckCircle2, Image as ImageIcon, Video, Compare, Wand2, BarChart4, AlertTriangle
+  CheckCircle2, Image as ImageIcon, Video, GitCompare, Wand2, BarChart4, AlertTriangle
 } from "lucide-react";
 import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -291,7 +291,7 @@ export default function SwingalyzeDebug() {
                   <p className="text-gray-300 text-sm">Visual overlays, metrics, and coaching insights</p>
                 </div>
                 <button className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl border border-white/20 transition-colors">
-                  <Compare className="h-4 w-4" /> Before/After
+                  <GitCompare className="h-4 w-4" /> Before/After
                 </button>
               </div>
 
