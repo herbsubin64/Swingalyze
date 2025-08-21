@@ -112,7 +112,7 @@ async def analyze_swing_with_ai(video_path: str, user_notes: str = "") -> Dict[s
             
             Provide specific, actionable feedback with scores (0-100) for each area.
             Include detailed recommendations and practice drills."""
-        ).with_model("gemini", "gemini-2.5-pro-preview-05-06")
+        ).with_model("gemini", "gemini-2.5-pro")  # Use valid Gemini model
         
         # Create video file object
         video_file = FileContentWithMimeType(
