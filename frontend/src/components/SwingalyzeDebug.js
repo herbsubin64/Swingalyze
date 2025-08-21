@@ -237,44 +237,11 @@ export default function SwingalyzeDebug() {
                 <p className="text-gray-300 text-sm">Image or video — MP4, MOV, PNG, JPG (max 30s / 50MB)</p>
               </div>
               
-              <input ref={fileRef} type="file" className="hidden" onChange={onFileChange} />
-              <div className="rounded-2xl border-2 border-dashed border-green-400/50 bg-white/5 p-8">
-                <div className="flex flex-col items-center gap-4 text-center">
-                  <Upload className="h-12 w-12 text-green-400" />
-                  <p className="text-gray-300">Drag & drop your file (or use buttons)</p>
-                  <div className="flex items-center gap-2">
-                    <button 
-                      className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-colors disabled:opacity-50"
-                      onClick={() => onPickFile("image")} 
-                      disabled={busy || uploading}
-                    >
-                      <ImageIcon className="h-4 w-4" /> Image
-                    </button>
-                    <button 
-                      className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl border border-white/20 transition-colors disabled:opacity-50"
-                      onClick={() => onPickFile("video")} 
-                      disabled={busy || uploading}
-                    >
-                      <Video className="h-4 w-4" /> Video
-                    </button>
-                  </div>
-                  <div className="mt-4 flex w-full items-center gap-2">
-                    <input 
-                      placeholder="or paste a public URL…" 
-                      className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400"
-                      value={url} 
-                      onChange={(e) => setUrl(e.target.value)} 
-                    />
-                    <button 
-                      className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-colors disabled:opacity-50"
-                      onClick={() => url && startAnalyze(url)} 
-                      disabled={!url || busy}
-                    >
-                      <Sparkles className="h-4 w-4" /> Analyze
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <EnhancedUploadZone 
+                onFile={onFileChange}
+                analyzing={uploading || busy}
+                progress={progressPct}
+              />
 
               <div className="mt-6 space-y-4">
                 <div className="flex items-center justify-between">
