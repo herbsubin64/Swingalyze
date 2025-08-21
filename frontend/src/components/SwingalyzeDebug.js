@@ -162,17 +162,21 @@ export default function SwingalyzeDebug() {
     fileRef.current?.click();
   }
 
-  async function onFileChange(e) {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    if (f.size > 50 * 1024 * 1024) {
-      setError("File too large (max 50MB)");
+  async function onFileChange(file) {
+    if (!file) return;
+    if (file.size > 100 * 1024 * 1024) {
+      setError("File too large (max 100MB)");
       return;
     }
     setUploading(true);
     setError(null);
+    
+    // Create local video URL for preview
+    const videoUrl = URL.createObjectURL(file);
+    setUploadedVideoUrl(videoUrl);
+    
     try {
-      const { url, jobId } = await uploadFile(f);
+      const { url, jobId } = await uploadFile(file);
       // Start polling for real analysis
       const final = await pollJob(jobId, (j) => setJob(j));
       setJob(final);
@@ -180,7 +184,6 @@ export default function SwingalyzeDebug() {
       setError(e?.message || "Upload failed");
     } finally {
       setUploading(false);
-      if (fileRef.current) fileRef.current.value = "";
     }
   }
 
