@@ -293,14 +293,26 @@ export default function SwingalyzeDebug() {
                 </button>
               </div>
 
-              {/* Preview Video Area */}
+              {/* Enhanced Video Player with Overlays */}
               <div className="relative overflow-hidden rounded-2xl border border-white/20 mb-6">
-                <div className="aspect-video bg-gradient-to-br from-green-800/20 to-emerald-800/20" />
-                <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 56" preserveAspectRatio="none">
-                  <polyline points="5,50 30,40 55,30 80,25 95,20" fill="none" stroke="#22c55e" strokeWidth="1.2" />
-                  <circle cx="55" cy="30" r="2" fill="#0ea5e9" />
-                  <line x1="10" y1="10" x2="90" y2="10" stroke="#94a3b8" strokeDasharray="2 2" />
-                </svg>
+                {uploadedVideoUrl ? (
+                  <AnalyserPlayer 
+                    src={uploadedVideoUrl}
+                    swingPath={swingPath}
+                    overlay={overlayPoints}
+                    onFrame={(time) => {
+                      // Could trigger additional analysis based on video time
+                      console.log('Video time:', time);
+                    }}
+                  />
+                ) : (
+                  <div className="aspect-video bg-gradient-to-br from-green-800/20 to-emerald-800/20 flex items-center justify-center">
+                    <div className="text-center text-gray-400">
+                      <Video className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                      <p>Upload a swing video to see analysis overlay</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <MetricsStrip m={job?.metrics} />
