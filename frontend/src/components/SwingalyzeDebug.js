@@ -11,6 +11,9 @@ import {
 import {
   analyzeFromUrl, uploadFile, pollJob, pct
 } from "../lib/api";
+import AnalyserPlayer from "./AnalyserPlayer";
+import EnhancedUploadZone from "./EnhancedUploadZone";
+import EnhancedMetricCards from "./EnhancedMetricCards";
 
 const fallbackRadar = [
   { metric: "Tempo", score: 78 },
