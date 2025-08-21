@@ -121,10 +121,27 @@ export default function SwingalyzeDebug() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadedVideoUrl, setUploadedVideoUrl] = useState(null);
   const [activeTab, setActiveTab] = useState("radar");
 
   const radarData = job?.radar?.length ? job.radar : fallbackRadar;
   const tempoData = job?.tempo?.length ? job.tempo : fallbackTempo;
+
+  // Generate swing path overlay for video
+  const swingPath = useMemo(() => [
+    { x: 0.2, y: 0.8 },
+    { x: 0.35, y: 0.6 },
+    { x: 0.5, y: 0.4 },
+    { x: 0.65, y: 0.35 },
+    { x: 0.8, y: 0.3 }
+  ], []);
+
+  // Generate overlay points
+  const overlayPoints = useMemo(() => [
+    { x: 0.5, y: 0.4, color: '#ef4444', label: 'Impact' },
+    { x: 0.2, y: 0.8, color: '#3b82f6', label: 'Setup' },
+    { x: 0.8, y: 0.3, color: '#10b981', label: 'Follow Through' }
+  ], []);
 
   async function startAnalyze(fromUrl) {
     setError(null);
