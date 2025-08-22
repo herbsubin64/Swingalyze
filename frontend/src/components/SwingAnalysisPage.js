@@ -57,6 +57,16 @@ const SwingAnalysisPage = () => {
         throw new Error('Unsupported video format. Please upload MP4, AVI, MOV, MKV, WebM, OGG, 3GP, FLV, or WMV files.');
       }
 
+      // Check file size (minimum 1KB for valid videos)
+      if (file.size < 1024) {
+        throw new Error('File is too small to be a valid video. Please upload a proper golf swing video file.');
+      }
+
+      // Check reasonable maximum size (e.g., 500MB)
+      if (file.size > 500 * 1024 * 1024) {
+        throw new Error('Video file is too large. Please upload a video smaller than 500MB.');
+      }
+
       // Step 1: Upload video
       const formData = new FormData();
       formData.append('file', file);
