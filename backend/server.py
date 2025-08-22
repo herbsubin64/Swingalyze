@@ -29,8 +29,9 @@ app = FastAPI(title="SwingAlyze API", description="AI-Powered Golf Swing Analysi
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
-# Initialize AI chat client
+# Initialize AI chat client and fast analyzer
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
+fast_analyzer = FastSwingAnalyzer()
 
 # Create uploads directory
 UPLOAD_DIR = Path("/app/backend/uploads")
