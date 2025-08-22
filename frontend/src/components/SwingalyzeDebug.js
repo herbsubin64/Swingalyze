@@ -392,33 +392,47 @@ export default function SwingalyzeDebug() {
                 </button>
               </div>
 
-              {/* Advanced Video Player with Greenside AI-style Controls */}
+              {/* Video Player with Error Handling */}
               {uploadedVideoUrl ? (
-                <AdvancedVideoPlayer 
-                  src={uploadedVideoUrl}
-                  swingData={analysisResults}
-                  analysisResults={analysisResults}
-                  onAnalysisRequest={async (videoSrc) => {
-                    setUploading(true);
-                    try {
-                      // Quick re-analysis
-                      const { quickResult } = await quickAnalyzeFromUrl(videoSrc);
-                      if (quickResult) {
-                        setAnalysisResults(quickResult);
+                videoError ? (
+                  <SimpleVideoPlayer 
+                    src={uploadedVideoUrl}
+                    onVideoError={(error) => {
+                      console.error('Video player error:', error);
+                      setVideoError(true);
+                    }}
+                  />
+                ) : (
+                  <AdvancedVideoPlayer 
+                    src={uploadedVideoUrl}
+                    swingData={analysisResults}
+                    analysisResults={analysisResults}
+                    onAnalysisRequest={async (videoSrc) => {
+                      setUploading(true);
+                      try {
+                        // Quick re-analysis
+                        const { quickResult } = await quickAnalyzeFromUrl(videoSrc);
+                        if (quickResult) {
+                          setAnalysisResults(quickResult);
+                        }
+                      } catch (e) {
+                        console.error('Re-analysis failed:', e);
+                      } finally {
+                        setUploading(false);
                       }
-                    } catch (e) {
-                      console.error('Re-analysis failed:', e);
-                    } finally {
-                      setUploading(false);
-                    }
-                  }}
-                />
+                    }}
+                  />
+                )
               ) : (
                 <div className="aspect-video bg-gradient-to-br from-green-800/20 to-emerald-800/20 rounded-2xl border border-white/20 flex items-center justify-center">
                   <div className="text-center text-gray-400">
                     <Video className="h-16 w-16 mx-auto mb-4 opacity-50" />
                     <p className="text-lg font-medium mb-2">Upload a swing video</p>
                     <p className="text-sm">See professional analysis with frame-by-frame playback</p>
+                    <div className="mt-4 text-xs text-gray-500 space-y-1">
+                      <p>📹 Best formats: MP4, WebM</p>
+                      <p>⚠️ .MOV files may not work in all browsers</p>
+                    </div>
                   </div>
                 </div>
               )}
