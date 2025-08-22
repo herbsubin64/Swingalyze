@@ -664,16 +664,21 @@ def calculate_biomechanical_metrics(frame_data, swing_phases):
 def calculate_pose_tracking_quality(frame_data):
     """Calculate the quality of pose tracking throughout the swing"""
     if not frame_data:
-        return 0
+        return 0.0
     
-    total_quality = 0
+    total_quality = 0.0
+    valid_frames = 0
+    
     for frame in frame_data:
         landmarks = frame.get('landmarks', {})
-        visible_count = sum(1 for landmark in landmarks.values() if landmark.get('visibility', 0) > 0.5)
-        quality = visible_count / len(landmarks) if landmarks else 0
-        total_quality += quality
+        if landmarks:  # Only calculate if landmarks exist
+            visible_count = sum(1 for landmark in landmarks.values() 
+                              if isinstance(landmark, dict) and landmark.get('visibility', 0) > 0.5)
+            quality = visible_count / len(landmarks) if len(landmarks) > 0 else 0
+            total_quality += quality
+            valid_frames += 1
     
-    return total_quality / len(frame_data)
+    return total_quality / valid_frames if valid_frames > 0 else 0.0
 
 def calculate_swing_tempo(frame_data):
     """Calculate swing tempo metrics"""
