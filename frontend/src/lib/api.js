@@ -24,11 +24,23 @@ export async function uploadFile(file, quickMode = false) {
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.detail || 'Upload failed');
+    let errorMessage = 'Upload failed';
+    try {
+      const error = await response.json();
+      errorMessage = error.detail || error.message || errorMessage;
+    } catch (e) {
+      // If response isn't JSON, use status text
+      errorMessage = `Upload failed: ${response.status} ${response.statusText}`;
+    }
+    throw new Error(errorMessage);
   }
 
   const result = await response.json();
+  
+  // Check if there's an error in the result
+  if (result.error) {
+    throw new Error(result.message || 'Analysis failed');
+  }
   
   if (quickMode) {
     return { 
