@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Real File Upload</title>
+</head>
+<body>
+    <h2>SwingAlyze Real Upload Test</h2>
+    <input type="file" id="fileInput" accept="video/*" />
+    <button onclick="testUpload()">Test Upload</button>
+    <div id="result" style="margin-top: 20px; font-family: monospace;"></div>
+
+    <script>
+        async function testUpload() {
+            const fileInput = document.getElementById('fileInput');
+            const result = document.getElementById('result');
+            
+            if (!fileInput.files[0]) {
+                result.innerHTML = 'Please select a file first';
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            result.innerHTML = `Testing upload of ${file.name} (${(file.size/1024/1024).toFixed(2)}MB)...<br>`;
+            
+            try {
+                const formData = new FormData();
+                formData.append('video', file);
+                formData.append('user_id', 'test_real_upload');
+                formData.append('swing_type', 'full_swing');
+                formData.append('club_type', 'driver');
+
+                const response = await fetch('https://swingalyze-debug-1.preview.emergentagent.com/api/quick-analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                result.innerHTML += `Response status: ${response.status}<br>`;
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    result.innerHTML += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    const error = await response.text();
+                    result.innerHTML += `Error: ${error}`;
+                }
+            } catch (error) {
+                result.innerHTML += `Network error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
