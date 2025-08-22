@@ -468,6 +468,10 @@ async def process_golf_video_analysis(video_path: str, video_id: str):
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         
+        # Validate video properties
+        if fps <= 0 or frame_count <= 0 or width <= 0 or height <= 0:
+            raise ValueError("Invalid video file or corrupted video properties")
+        
         analysis_result["video_info"] = {
             "fps": fps,
             "frame_count": frame_count,
@@ -484,6 +488,7 @@ async def process_golf_video_analysis(video_path: str, video_id: str):
         # Process frames for pose detection and ghost skeleton
         frame_data = []
         frame_index = 0
+        valid_frames = 0
         
         while cap.isOpened():
             ret, frame = cap.read()
@@ -491,41 +496,84 @@ async def process_golf_video_analysis(video_path: str, video_id: str):
                 break
                 
             # Detect pose and create ghost skeleton overlay
-            annotated_frame, pose_data = pose_detector.detect_pose(frame)
+            try:
+                annotated_frame, pose_data = pose_detector.detect_pose(frame)
+                
+                if pose_data:
+                    pose_data['frame_index'] = frame_index
+                    pose_data['timestamp'] = frame_index / fps
+                    frame_data.append(pose_data)
+                    valid_frames += 1
+                
+                # Write ghost skeleton overlay frame
+                overlay_writer.write(annotated_frame)
+            except Exception as e:
+                logger.warning(f"Error processing frame {frame_index}: {e}")
+                # Write original frame if pose detection fails
+                overlay_writer.write(frame)
             
-            if pose_data:
-                pose_data['frame_index'] = frame_index
-                pose_data['timestamp'] = frame_index / fps
-                frame_data.append(pose_data)
-            
-            # Write ghost skeleton overlay frame
-            overlay_writer.write(annotated_frame)
             frame_index += 1
         
         overlay_writer.release()
         
-        # Analyze swing phases
-        swing_phases = analyze_swing_phases(frame_data)
-        analysis_result["swing_phases"] = swing_phases
-        
-        # Calculate biomechanical metrics
-        biomechanical_data = calculate_biomechanical_metrics(frame_data, swing_phases)
-        analysis_result["biomechanical_data"] = biomechanical_data
-        
-        # Generate recommendations
-        recommendations = generate_swing_recommendations(biomechanical_data)
-        analysis_result["recommendations"] = recommendations
+        # Check if we have enough valid frames for analysis
+        if valid_frames < 5:  # Minimum frames needed for meaningful analysis
+            # Still provide basic analysis even with limited data
+            analysis_result["swing_phases"] = []
+            analysis_result["biomechanical_data"] = {
+                "overall_metrics": {},
+                "phase_metrics": {},
+                "consistency_analysis": {},
+                "ghost_skeleton_insights": {
+                    "pose_tracking_quality": 0.0,
+                    "swing_tempo": {'tempo': 'unknown', 'duration': 0, 'frames_per_second': 0},
+                    "body_rotation": {}
+                }
+            }
+            analysis_result["recommendations"] = [
+                "Unable to detect clear pose landmarks in this video.",
+                "For better analysis, ensure good lighting and clear visibility of the golfer.",
+                "Consider recording from a side angle with the full body visible.",
+                "Make sure the golfer is clearly distinguishable from the background."
+            ]
+        else:
+            # Analyze swing phases
+            swing_phases = analyze_swing_phases(frame_data)
+            analysis_result["swing_phases"] = swing_phases
+            
+            # Calculate biomechanical metrics
+            biomechanical_data = calculate_biomechanical_metrics(frame_data, swing_phases)
+            analysis_result["biomechanical_data"] = biomechanical_data
+            
+            # Generate recommendations
+            recommendations = generate_swing_recommendations(biomechanical_data)
+            analysis_result["recommendations"] = recommendations
         
         # Ghost skeleton data
         analysis_result["ghost_skeleton_data"] = {
             "total_frames": len(frame_data),
-            "pose_detection_rate": len(frame_data) / frame_count * 100,
+            "pose_detection_rate": (len(frame_data) / frame_count * 100) if frame_count > 0 else 0,
             "key_angles_tracked": list(frame_data[0]['angles'].keys()) if frame_data else [],
             "overlay_video_path": str(overlay_path)
         }
         
         analysis_result["overlay_video"] = f"/api/ghost-skeleton/{video_id}"
         
+    except Exception as e:
+        logger.error(f"Error in video analysis: {e}")
+        # Provide fallback analysis result
+        analysis_result["swing_phases"] = []
+        analysis_result["biomechanical_data"] = {"error": "Analysis failed due to video processing error"}
+        analysis_result["recommendations"] = [
+            f"Video analysis failed: {str(e)}",
+            "Please try uploading a different video with clear visibility of the golfer."
+        ]
+        analysis_result["ghost_skeleton_data"] = {
+            "total_frames": 0,
+            "pose_detection_rate": 0,
+            "key_angles_tracked": [],
+            "overlay_video_path": ""
+        }
     finally:
         cap.release()
     
