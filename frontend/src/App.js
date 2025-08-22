@@ -3,6 +3,7 @@ import "./App.css";
 import { BrowserRouter, Routes, Route, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import SwingalyzeDebug from "./components/SwingalyzeDebug";
+import DiagnosticTester from "./components/DiagnosticTester";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
