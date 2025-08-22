@@ -250,9 +250,10 @@ export default function SwingalyzeDebug() {
       return;
     }
     
-    // Reset all states
+    // Reset all states - CRITICAL: Clear both uploading AND busy
     addDebugLog(`Starting upload: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)`, 'info');
     setUploading(true);
+    setBusy(false); // Ensure busy is false during file upload
     setError(null);
     setHasAnalyzed(false);
     setJob(null);
