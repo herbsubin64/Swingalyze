@@ -447,10 +447,12 @@ async def analyze_swing(
                 consistency_notes=analysis_data["consistency_notes"]
             )
         
-        # Store in database (don't return the database result)
+        # Store in database (convert to dict to avoid ObjectId issues)
         analysis_dict = swing_analysis.dict()
-        await db.swing_analyses.insert_one(analysis_dict)
+        analysis_dict["analysis_timestamp"] = datetime.utcnow().isoformat()  # Convert datetime to string
+        db_result = await db.swing_analyses.insert_one(analysis_dict)
         
+        # Return the original Pydantic model (without MongoDB _id)
         return swing_analysis
         
     except HTTPException as he:
