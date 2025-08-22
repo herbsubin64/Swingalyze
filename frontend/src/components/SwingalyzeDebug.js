@@ -457,6 +457,26 @@ export default function SwingalyzeDebug() {
                 <div className="text-sm font-semibold text-white">{busy ? "analyzing..." : "2.1s avg"}</div>
               </div>
             </div>
+
+            {/* Debug Information */}
+            {debugLog.length > 0 && (
+              <div className="mt-6 bg-black/20 backdrop-blur-md rounded-xl p-4 border border-white/10">
+                <h3 className="text-sm font-medium text-white mb-2">Debug Log</h3>
+                <div className="space-y-1 max-h-32 overflow-y-auto">
+                  {debugLog.map((log, i) => (
+                    <div key={i} className="text-xs flex gap-2">
+                      <span className="text-gray-500">{log.timestamp}</span>
+                      <span className={
+                        log.type === 'error' ? 'text-red-400' :
+                        log.type === 'success' ? 'text-green-400' :
+                        log.type === 'action' ? 'text-blue-400' :
+                        'text-gray-300'
+                      }>{log.message}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Analysis Preview */}
