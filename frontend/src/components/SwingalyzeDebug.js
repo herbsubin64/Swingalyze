@@ -422,18 +422,10 @@ export default function SwingalyzeDebug() {
                     <span className="text-xs text-gray-400">pose, club, ball detection</span>
                     {(uploading || busy) && (
                       <button 
-                        onClick={() => {
-                          setUploading(false);
-                          setBusy(false);
-                          setError(null);
-                          setUploadedVideoUrl(null);
-                          setAnalysisResults(null);
-                          setJob(null);
-                          setHasAnalyzed(false);
-                        }}
+                        onClick={resetAllStates}
                         className="text-xs text-red-400 hover:text-red-300 underline"
                       >
-                        Cancel
+                        Cancel/Reset
                       </button>
                     )}
                   </div>
