@@ -81,7 +81,8 @@ const VideoUploader = ({ onUpload, isLoading }) => {
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
-        onClick={() => !uploading && fileInputRef.current?.click()}
+        onClick={handleUploadClick}
+        style={{ cursor: uploading ? 'not-allowed' : 'pointer' }}
       >
         <input
           ref={fileInputRef}
