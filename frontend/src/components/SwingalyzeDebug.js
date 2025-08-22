@@ -128,6 +128,7 @@ export default function SwingalyzeDebug() {
   const [analysisResults, setAnalysisResults] = useState(null);
   const [quickMode, setQuickMode] = useState(true); // Default to quick mode
   const [hasAnalyzed, setHasAnalyzed] = useState(false); // Track if analysis completed
+  const [videoError, setVideoError] = useState(false); // Track video playback errors
 
   const radarData = job?.radar?.length ? job.radar : (hasAnalyzed ? fallbackRadar : [
     { metric: "Club Path", score: 0 },
