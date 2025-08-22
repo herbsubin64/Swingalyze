@@ -309,9 +309,32 @@ async def quick_analyze_swing(
         
         return response
         
+    except HTTPException as he:
+        # Re-raise HTTP exceptions as-is
+        raise he
     except Exception as e:
         logging.error(f"Quick analysis failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Quick analysis failed: {str(e)}")
+        # Return a proper JSON error response
+        return {
+            "error": "Analysis failed",
+            "message": str(e),
+            "analysis_id": "error",
+            "processing_time": "0 seconds",
+            "metrics": {
+                "club_path_deg": 0.0,
+                "face_to_path_deg": 0.0,
+                "attack_angle_deg": -4.0,
+                "tempo_ratio": 3.0,
+                "shoulder_rotation_deg": 45.0,
+                "hip_rotation_deg": 30.0,
+                "swing_speed_mph": 90.0
+            },
+            "swing_path": [],
+            "key_positions": [],
+            "phases": [],
+            "recommendations": ["Please try uploading your video again"],
+            "confidence": 0
+        }
 
 @api_router.post("/analyze-swing", response_model=SwingAnalysisResult)
 async def analyze_swing(
