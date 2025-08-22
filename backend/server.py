@@ -231,9 +231,29 @@ async def quick_analyze_swing(
 ):
     """Fast swing analysis - under 3 seconds"""
     try:
-        # Validate file type
-        if not video.content_type.startswith('video/'):
-            raise HTTPException(status_code=400, detail="File must be a video")
+        # Validate file type - accept various video formats
+        valid_video_types = [
+            'video/mp4', 'video/mov', 'video/quicktime', 'video/avi', 
+            'video/x-msvideo', 'video/webm', 'video/3gpp', 'video/x-ms-wmv'
+        ]
+        valid_image_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+        
+        is_valid_file = (
+            video.content_type in valid_video_types or 
+            video.content_type in valid_image_types or
+            video.filename.lower().endswith(('.mp4', '.mov', '.avi', '.webm', '.3gp', '.wmv', '.jpg', '.jpeg', '.png', '.webp'))
+        )
+        
+        if not is_valid_file:
+            raise HTTPException(status_code=400, detail="File must be a supported video or image format (MP4, MOV, AVI, WebM, JPG, PNG)")
+        
+        # Check file size (200MB limit)
+        if hasattr(video.file, 'seek'):
+            video.file.seek(0, 2)  # Seek to end
+            file_size = video.file.tell()
+            video.file.seek(0)  # Reset to beginning
+            if file_size > 200 * 1024 * 1024:  # 200MB
+                raise HTTPException(status_code=400, detail="File size must be less than 200MB")
         
         # Generate unique filename
         file_extension = video.filename.split('.')[-1] if '.' in video.filename else 'mp4'
