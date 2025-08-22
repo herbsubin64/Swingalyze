@@ -244,40 +244,44 @@ export default function SwingalyzeDebug() {
   async function onFileChange(file) {
     if (!file) return;
     if (file.size > 200 * 1024 * 1024) {
-      setError("File too large (max 200MB)");
+      const errorMsg = "File too large (max 200MB)";
+      setError(errorMsg);
+      addDebugLog(errorMsg, 'error');
       return;
     }
     
     // Reset all states
+    addDebugLog(`Starting upload: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)`, 'info');
     setUploading(true);
     setError(null);
     setHasAnalyzed(false);
     setJob(null);
     setAnalysisResults(null);
-    
-    console.log("Starting file upload:", file.name, file.size, "bytes");
+    setVideoError(false);
     
     // Create local video URL for preview
     const videoUrl = URL.createObjectURL(file);
     setUploadedVideoUrl(videoUrl);
+    addDebugLog('Created video preview URL', 'info');
     
     // Set a timeout to prevent infinite spinning
     const uploadTimeout = setTimeout(() => {
       if (uploading) {
+        addDebugLog('Upload/analysis timed out after 30 seconds', 'error');
         setUploading(false);
-        setError("Analysis timed out. Please try again.");
+        setError("Analysis timed out. Please try again or use the Reset button.");
       }
     }, 30000); // 30 second timeout
     
     try {
-      console.log("Calling uploadFile with quickMode:", quickMode);
+      addDebugLog(`Calling uploadFile API with quickMode: ${quickMode}`, 'info');
       const { url, jobId, quickResult } = await uploadFile(file, quickMode);
       
       clearTimeout(uploadTimeout); // Clear timeout on success
-      console.log("Upload response:", { url, jobId, quickResult });
+      addDebugLog(`Upload API response received. JobID: ${jobId}`, 'info');
       
       if (quickResult) {
-        console.log("Quick analysis result received:", quickResult);
+        addDebugLog('Quick analysis result received, processing data', 'success');
         // Quick analysis results
         setAnalysisResults(quickResult);
         setHasAnalyzed(true); // Mark as analyzed
@@ -304,23 +308,28 @@ export default function SwingalyzeDebug() {
           ],
           tips: quickResult.recommendations
         });
+        addDebugLog('Analysis completed successfully', 'success');
       } else {
-        console.log("No quick result, polling job:", jobId);
+        addDebugLog('No quick result, starting job polling', 'info');
         // Start polling for detailed analysis
         const final = await pollJob(jobId, (j) => {
-          console.log("Job update:", j);
+          addDebugLog(`Job update: ${j.status} - ${(j.progress * 100).toFixed(0)}%`, 'info');
           setJob(j);
         });
         setHasAnalyzed(true);
         setJob(final);
+        addDebugLog('Polling completed, analysis finished', 'success');
       }
     } catch (e) {
       clearTimeout(uploadTimeout); // Clear timeout on error
+      const errorMsg = e?.message || "Upload failed";
+      addDebugLog(`Upload/analysis failed: ${errorMsg}`, 'error');
       console.error("Upload/analysis failed:", e);
-      setError(e?.message || "Upload failed");
+      setError(errorMsg);
       setHasAnalyzed(false);
     } finally {
       setUploading(false);
+      addDebugLog('Upload process finished', 'info');
     }
   }
 
