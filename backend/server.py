@@ -303,10 +303,12 @@ async def quick_analyze_swing(
             ]
         }
         
-        # Store in database for quick access (don't return the database result)
+        # Store in database for quick access (convert to dict and let MongoDB handle _id)
         result_for_db = response.copy()
-        await db.quick_analyses.insert_one(result_for_db)
+        result_for_db["timestamp"] = datetime.utcnow().isoformat()  # Convert datetime to string
+        db_result = await db.quick_analyses.insert_one(result_for_db)
         
+        # Return the original response without MongoDB's _id field
         return response
         
     except HTTPException as he:
