@@ -303,8 +303,9 @@ async def quick_analyze_swing(
             ]
         }
         
-        # Store in database for quick access
-        await db.quick_analyses.insert_one(response)
+        # Store in database for quick access (don't return the database result)
+        result_for_db = response.copy()
+        await db.quick_analyses.insert_one(result_for_db)
         
         return response
         
