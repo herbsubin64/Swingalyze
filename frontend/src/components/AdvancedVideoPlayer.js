@@ -46,17 +46,30 @@ export default function AdvancedVideoPlayer({
     const updateDuration = () => setDuration(video.duration);
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
+    const handleLoadedData = () => {
+      setIsVideoLoaded(true);
+      setVideoError(null);
+    };
+    const handleError = (e) => {
+      console.error('Video error:', e);
+      setVideoError('Video format not supported. Please try MP4 format.');
+      setIsVideoLoaded(false);
+    };
 
     video.addEventListener('timeupdate', updateTime);
     video.addEventListener('loadedmetadata', updateDuration);
+    video.addEventListener('loadeddata', handleLoadedData);
     video.addEventListener('play', handlePlay);
     video.addEventListener('pause', handlePause);
+    video.addEventListener('error', handleError);
 
     return () => {
       video.removeEventListener('timeupdate', updateTime);
       video.removeEventListener('loadedmetadata', updateDuration);
+      video.removeEventListener('loadeddata', handleLoadedData);
       video.removeEventListener('play', handlePlay);
       video.removeEventListener('pause', handlePause);
+      video.removeEventListener('error', handleError);
     };
   }, []);
 
