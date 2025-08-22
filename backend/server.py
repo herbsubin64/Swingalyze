@@ -678,9 +678,13 @@ def calculate_pose_tracking_quality(frame_data):
 def calculate_swing_tempo(frame_data):
     """Calculate swing tempo metrics"""
     if len(frame_data) < 2:
-        return {'tempo': 'unknown', 'duration': 0}
+        return {'tempo': 'unknown', 'duration': 0, 'frames_per_second': 0}
     
     total_duration = frame_data[-1]['timestamp'] - frame_data[0]['timestamp']
+    
+    # Protect against division by zero
+    if total_duration <= 0:
+        return {'tempo': 'unknown', 'duration': 0, 'frames_per_second': 0}
     
     # Simple tempo classification
     if total_duration < 1.2:
@@ -693,7 +697,7 @@ def calculate_swing_tempo(frame_data):
     return {
         'tempo': tempo,
         'duration': total_duration,
-        'frames_per_second': len(frame_data) / total_duration if total_duration > 0 else 0
+        'frames_per_second': len(frame_data) / total_duration
     }
 
 def calculate_body_rotation_metrics(frame_data):
