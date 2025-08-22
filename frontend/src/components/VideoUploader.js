@@ -30,8 +30,16 @@ const VideoUploader = ({ onUpload, isLoading }) => {
 
   // Handle file input change
   const handleFileChange = (e) => {
+    e.preventDefault();
     if (e.target.files && e.target.files[0]) {
       handleFileUpload(e.target.files[0]);
+    }
+  };
+
+  // Handle mobile/tablet click to open file picker
+  const handleUploadClick = () => {
+    if (!uploading && fileInputRef.current) {
+      fileInputRef.current.click();
     }
   };
 
