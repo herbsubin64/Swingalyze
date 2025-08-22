@@ -15,6 +15,7 @@ import AnalyserPlayer from "./AnalyserPlayer";
 import EnhancedUploadZone from "./EnhancedUploadZone";
 import EnhancedMetricCards from "./EnhancedMetricCards";
 import AdvancedVideoPlayer from "./AdvancedVideoPlayer";
+import SimpleVideoPlayer from "./SimpleVideoPlayer";
 
 const fallbackRadar = [
   { metric: "Tempo", score: 78 },
