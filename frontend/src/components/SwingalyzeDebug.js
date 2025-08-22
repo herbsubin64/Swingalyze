@@ -208,10 +208,39 @@ export default function SwingalyzeDebug() {
     setUploadedVideoUrl(videoUrl);
     
     try {
-      const { url, jobId } = await uploadFile(file);
-      // Start polling for real analysis
-      const final = await pollJob(jobId, (j) => setJob(j));
-      setJob(final);
+      const { url, jobId, quickResult } = await uploadFile(file, quickMode);
+      
+      if (quickResult) {
+        // Quick analysis results
+        setAnalysisResults(quickResult);
+        setJob({
+          id: jobId,
+          status: "succeeded",
+          progress: 1.0,
+          metrics: quickResult.metrics,
+          radar: [
+            { metric: "Club Path", score: Math.max(0, 100 - Math.abs(quickResult.metrics.club_path_deg * 10)) },
+            { metric: "Face Angle", score: Math.max(0, 100 - Math.abs(quickResult.metrics.face_to_path_deg * 15)) },
+            { metric: "Attack Angle", score: Math.max(0, 80 + quickResult.metrics.attack_angle_deg) },
+            { metric: "Tempo", score: Math.max(0, Math.min(100, quickResult.metrics.tempo_ratio * 30)) },
+            { metric: "Rotation", score: Math.min(100, quickResult.metrics.shoulder_rotation_deg * 2) },
+            { metric: "Speed", score: Math.min(100, quickResult.metrics.swing_speed_mph) }
+          ],
+          tempo: [
+            { t: "Start", v: 0 },
+            { t: "Back", v: 0.6 },
+            { t: "Top", v: 1.0 },
+            { t: "Down", v: 0.4 },
+            { t: "Impact", v: 0.1 },
+            { t: "Follow", v: 0.8 }
+          ],
+          tips: quickResult.recommendations
+        });
+      } else {
+        // Start polling for detailed analysis
+        const final = await pollJob(jobId, (j) => setJob(j));
+        setJob(final);
+      }
     } catch (e) {
       setError(e?.message || "Upload failed");
     } finally {
