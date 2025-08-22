@@ -328,6 +328,58 @@ def is_video_file(content_type: str, filename: str) -> bool:
     file_ext = Path(filename).suffix.lower()
     return file_ext in video_extensions
 
+def is_valid_video_content(content: bytes) -> bool:
+    """
+    Validate video file content by checking for common video file signatures
+    """
+    if len(content) < 12:  # Need at least 12 bytes for most signatures
+        return False
+    
+    # Common video file signatures (magic numbers)
+    video_signatures = [
+        # MP4/MOV signatures
+        b'\x00\x00\x00\x18ftypmp4',  # MP4
+        b'\x00\x00\x00\x20ftypmp4',  # MP4
+        b'\x00\x00\x00\x1cftypisom', # MP4 ISO
+        b'\x00\x00\x00\x20ftypisom', # MP4 ISO
+        b'\x00\x00\x00\x18ftypM4V',  # M4V
+        b'\x00\x00\x00\x18ftypqt',   # QuickTime
+        
+        # AVI signature
+        b'RIFF',  # AVI (check for RIFF header)
+        
+        # WebM signature
+        b'\x1a\x45\xdf\xa3',  # WebM/MKV EBML header
+        
+        # OGG signature
+        b'OggS',  # OGG container
+        
+        # FLV signature
+        b'FLV\x01',  # FLV
+        
+        # 3GP signature
+        b'\x00\x00\x00\x14ftyp3gp',  # 3GP
+        b'\x00\x00\x00\x18ftyp3gp',  # 3GP
+    ]
+    
+    # Check for video signatures
+    for signature in video_signatures:
+        if content.startswith(signature):
+            return True
+        # Also check if signature appears within first 12 bytes for some formats
+        if signature in content[:12]:
+            return True
+    
+    # Special case for AVI - check for AVI signature pattern
+    if content.startswith(b'RIFF') and b'AVI ' in content[:12]:
+        return True
+    
+    # Special case for WMV - check for ASF header
+    if content.startswith(b'\x30\x26\xb2\x75\x8e\x66\xcf\x11\xa6\xd9\x00\xaa\x00\x62\xce\x6c'):
+        return True
+    
+    return False
+
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
