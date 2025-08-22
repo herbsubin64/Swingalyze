@@ -243,12 +243,50 @@ export default function AdvancedVideoPlayer({
     >
       {/* Video Container */}
       <div className="relative aspect-video">
-        <video
-          ref={videoRef}
-          src={src}
-          className="w-full h-full object-contain"
-          onClick={togglePlayPause}
-        />
+        {videoError ? (
+          <div className="w-full h-full flex items-center justify-center bg-gray-900">
+            <div className="text-center text-white p-8">
+              <AlertTriangle className="h-16 w-16 mx-auto mb-4 text-yellow-500" />
+              <h3 className="text-xl font-semibold mb-2">Video Format Not Supported</h3>
+              <p className="text-gray-300 mb-4">{videoError}</p>
+              <p className="text-sm text-gray-400">
+                Try converting your .MOV file to .MP4 format, or use a different video file.
+              </p>
+              <button 
+                onClick={() => {
+                  const input = document.createElement('input');
+                  input.type = 'file';
+                  input.accept = 'video/mp4,video/webm';
+                  input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const newUrl = URL.createObjectURL(file);
+                      // This would need to be passed back to parent component
+                      console.log('New video selected:', newUrl);
+                    }
+                  };
+                  input.click();
+                }}
+                className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                Select Different Video
+              </button>
+            </div>
+          </div>
+        ) : (
+          <video
+            ref={videoRef}
+            src={src}
+            className="w-full h-full object-contain"
+            onClick={togglePlayPause}
+            preload="metadata"
+          >
+            <source src={src} type="video/mp4" />
+            <source src={src} type="video/webm" />
+            <source src={src} type="video/quicktime" />
+            Your browser does not support the video tag.
+          </video>
+        )}
         <canvas
           ref={canvasRef}
           className="absolute inset-0 pointer-events-none"
