@@ -400,7 +400,7 @@ async def get_status_checks():
 @api_router.post("/upload", response_model=VideoUpload)
 async def upload_video(request: Request, file: UploadFile = File(...)):
     """
-    Upload golf swing video for analysis
+    Upload golf swing video for analysis with proper validation
     """
     try:
         # Validate file type
@@ -408,6 +408,23 @@ async def upload_video(request: Request, file: UploadFile = File(...)):
             raise HTTPException(
                 status_code=400, 
                 detail=f"Unsupported file format. Supported formats: MP4, AVI, MOV, MKV, WebM, OGG, 3GP, FLV, WMV"
+            )
+        
+        # Read file content for validation
+        content = await file.read()
+        
+        # Validate minimum file size (videos should be at least 1KB)
+        if len(content) < 1024:
+            raise HTTPException(
+                status_code=400,
+                detail="File too small to be a valid video. Please upload a proper video file."
+            )
+        
+        # Basic video file validation - check for common video file signatures
+        if not is_valid_video_content(content):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid video file content. Please upload a valid video file."
             )
         
         # Generate unique filename
@@ -428,21 +445,16 @@ async def upload_video(request: Request, file: UploadFile = File(...)):
         unique_filename = f"{file_id}{file_extension}"
         file_path = UPLOAD_DIR / unique_filename
         
-        # Track file size
-        file_size = 0
-        
-        # Stream file to disk to handle large files efficiently
+        # Write file content to disk
         async with aiofiles.open(file_path, 'wb') as buffer:
-            while chunk := await file.read(8192):  # Read in 8KB chunks
-                file_size += len(chunk)
-                await buffer.write(chunk)
+            await buffer.write(content)
         
         # Create video upload record
         video_upload = VideoUpload(
             id=file_id,
             filename=unique_filename,
             original_filename=file.filename,
-            file_size=file_size,
+            file_size=len(content),
             content_type=file.content_type or 'video/mp4',
             file_path=str(file_path)
         )
@@ -450,7 +462,7 @@ async def upload_video(request: Request, file: UploadFile = File(...)):
         # Store in database
         await db.video_uploads.insert_one(video_upload.dict())
         
-        logger.info(f"Successfully uploaded video: {file.filename} ({file_size} bytes)")
+        logger.info(f"Successfully uploaded video: {file.filename} ({len(content)} bytes)")
         return video_upload
         
     except HTTPException:
