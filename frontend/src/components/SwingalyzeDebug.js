@@ -196,21 +196,27 @@ export default function SwingalyzeDebug() {
 
   async function onFileChange(file) {
     if (!file) return;
-    if (file.size > 100 * 1024 * 1024) {
-      setError("File too large (max 100MB)");
+    if (file.size > 200 * 1024 * 1024) {
+      setError("File too large (max 200MB)");
       return;
     }
     setUploading(true);
     setError(null);
+    
+    console.log("Starting file upload:", file.name, file.size, "bytes");
     
     // Create local video URL for preview
     const videoUrl = URL.createObjectURL(file);
     setUploadedVideoUrl(videoUrl);
     
     try {
+      console.log("Calling uploadFile with quickMode:", quickMode);
       const { url, jobId, quickResult } = await uploadFile(file, quickMode);
       
+      console.log("Upload response:", { url, jobId, quickResult });
+      
       if (quickResult) {
+        console.log("Quick analysis result received:", quickResult);
         // Quick analysis results
         setAnalysisResults(quickResult);
         setJob({
@@ -237,11 +243,16 @@ export default function SwingalyzeDebug() {
           tips: quickResult.recommendations
         });
       } else {
+        console.log("No quick result, polling job:", jobId);
         // Start polling for detailed analysis
-        const final = await pollJob(jobId, (j) => setJob(j));
+        const final = await pollJob(jobId, (j) => {
+          console.log("Job update:", j);
+          setJob(j);
+        });
         setJob(final);
       }
     } catch (e) {
+      console.error("Upload/analysis failed:", e);
       setError(e?.message || "Upload failed");
     } finally {
       setUploading(false);
