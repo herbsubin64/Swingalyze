@@ -98,12 +98,11 @@ const VideoUploader = ({ onUpload, isLoading }) => {
         <input
           ref={fileInputRef}
           type="file"
-          accept="video/*,.mp4,.avi,.mov,.mkv,.webm,.ogg,.3gp,.flv,.wmv"
+          accept="video/*"
           onChange={handleFileChange}
           disabled={uploading}
           style={{ display: 'none' }}
           multiple={false}
-          capture="environment"
         />
 
         {!uploading ? (
