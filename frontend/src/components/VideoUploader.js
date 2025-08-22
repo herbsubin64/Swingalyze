@@ -104,8 +104,18 @@ const VideoUploader = ({ onUpload, isLoading }) => {
                 <line x1="12" y1="15" x2="12" y2="3"/>
               </svg>
             </div>
-            <h3>Drag and drop your video here</h3>
-            <p>or <span className="browse-link">browse files</span> to upload</p>
+            <h3>Tap to upload your golf swing video</h3>
+            <p>or drag and drop your video file here</p>
+            <div className="mobile-upload-btn">
+              <button 
+                type="button" 
+                className="upload-btn-mobile"
+                onClick={handleUploadClick}
+                disabled={uploading}
+              >
+                📹 Choose Video File
+              </button>
+            </div>
             <div className="supported-formats">
               <p>Supports: MP4, AVI, MOV, MKV, WebM, OGG, 3GP, FLV, WMV</p>
               <p>Maximum file size: No limit (bulletproof upload)</p>
