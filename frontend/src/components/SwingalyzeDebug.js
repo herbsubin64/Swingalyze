@@ -2,18 +2,19 @@ import React, { useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Upload, Play, Gauge, Ruler, TimerReset, Sparkles, ChevronRight,
-  CheckCircle2, Image as ImageIcon, Video, GitCompare, Wand2, BarChart4, AlertTriangle
+  CheckCircle2, Image as ImageIcon, Video, GitCompare, Wand2, BarChart4, AlertTriangle, Zap
 } from "lucide-react";
 import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer,
 } from "recharts";
 import {
-  analyzeFromUrl, uploadFile, pollJob, pct
+  analyzeFromUrl, uploadFile, pollJob, pct, quickAnalyzeFromUrl
 } from "../lib/api";
 import AnalyserPlayer from "./AnalyserPlayer";
 import EnhancedUploadZone from "./EnhancedUploadZone";
 import EnhancedMetricCards from "./EnhancedMetricCards";
+import AdvancedVideoPlayer from "./AdvancedVideoPlayer";
 
 const fallbackRadar = [
   { metric: "Tempo", score: 78 },
