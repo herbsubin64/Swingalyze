@@ -8,6 +8,8 @@ export async function uploadFile(file, quickMode = false) {
     throw new Error('File size must be less than 200MB');
   }
   
+  console.log(`Starting upload: ${file.name} (${file.size} bytes) - Quick mode: ${quickMode}`);
+  
   const formData = new FormData();
   formData.append('video', file);
   formData.append('user_id', 'user_' + Math.random().toString(36).substr(2, 9));
@@ -18,15 +20,20 @@ export async function uploadFile(file, quickMode = false) {
 
   const endpoint = quickMode ? `${API}/quick-analyze` : `${API}/analyze-swing`;
   
+  console.log(`Making request to: ${endpoint}`);
+  
   const response = await fetch(endpoint, {
     method: 'POST',
     body: formData,
   });
 
+  console.log(`Response status: ${response.status} ${response.statusText}`);
+
   if (!response.ok) {
     let errorMessage = 'Upload failed';
     try {
       const error = await response.json();
+      console.error('Error response:', error);
       errorMessage = error.detail || error.message || errorMessage;
     } catch (e) {
       // If response isn't JSON, use status text
@@ -36,6 +43,7 @@ export async function uploadFile(file, quickMode = false) {
   }
 
   const result = await response.json();
+  console.log('Upload result:', result);
   
   // Check if there's an error in the result
   if (result.error) {
