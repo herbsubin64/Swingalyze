@@ -422,8 +422,9 @@ async def analyze_swing(
                 consistency_notes=analysis_data["consistency_notes"]
             )
         
-        # Store in database
-        await db.swing_analyses.insert_one(swing_analysis.dict())
+        # Store in database (don't return the database result)
+        analysis_dict = swing_analysis.dict()
+        await db.swing_analyses.insert_one(analysis_dict)
         
         return swing_analysis
         
