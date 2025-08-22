@@ -376,7 +376,25 @@ export default function SwingalyzeDebug() {
                     <Wand2 className="h-4 w-4 text-green-400" />
                     <span className="text-sm font-medium text-white">AI Processing</span>
                   </div>
-                  <span className="text-xs text-gray-400">pose, club, ball detection</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-400">pose, club, ball detection</span>
+                    {(uploading || busy) && (
+                      <button 
+                        onClick={() => {
+                          setUploading(false);
+                          setBusy(false);
+                          setError(null);
+                          setUploadedVideoUrl(null);
+                          setAnalysisResults(null);
+                          setJob(null);
+                          setHasAnalyzed(false);
+                        }}
+                        className="text-xs text-red-400 hover:text-red-300 underline"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="w-full bg-gray-700 rounded-full h-2">
                   <div 
