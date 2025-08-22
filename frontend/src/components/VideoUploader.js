@@ -30,8 +30,10 @@ const VideoUploader = ({ onUpload, isLoading }) => {
 
   // Handle file input change
   const handleFileChange = (e) => {
+    console.log('File input change triggered!', e.target.files); // Debug log
     e.preventDefault();
     if (e.target.files && e.target.files[0]) {
+      console.log('File selected:', e.target.files[0].name); // Debug log
       handleFileUpload(e.target.files[0]);
     }
   };
