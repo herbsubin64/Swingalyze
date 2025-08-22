@@ -121,7 +121,12 @@ const VideoUploader = ({ onUpload, isLoading }) => {
               <button 
                 type="button" 
                 className="upload-btn-mobile"
-                onClick={handleUploadClick}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Mobile upload button clicked!'); // Debug log
+                  handleUploadClick(e);
+                }}
                 disabled={uploading}
               >
                 📹 Choose Video File
