@@ -58,13 +58,16 @@ const VideoUploader = ({ onUpload, isLoading }) => {
 
   // Handle file upload
   const handleFileUpload = async (file) => {
+    console.log('Starting file upload:', file.name, file.size); // Debug log
     setUploading(true);
     setUploadProgress(0);
 
     try {
       await onUpload(file, (progress) => {
+        console.log('Upload progress:', progress); // Debug log
         setUploadProgress(progress);
       });
+      console.log('Upload completed successfully!'); // Debug log
     } catch (error) {
       console.error('Upload failed:', error);
     } finally {
