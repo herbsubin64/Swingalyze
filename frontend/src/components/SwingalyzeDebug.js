@@ -54,7 +54,18 @@ function OverlayToggles() {
   );
 }
 
-function MetricsStrip({ m }) {
+function MetricsStrip({ m, hasAnalyzed }) {
+  if (!hasAnalyzed) {
+    // Show empty state before analysis
+    const emptyMetrics = [
+      { label: "Club Path", value: "--", numericValue: 0, hint: "swing path", status: null },
+      { label: "Face to Path", value: "--", numericValue: 0, hint: "club face angle", status: null },
+      { label: "Attack Angle", value: "--", numericValue: 0, hint: "impact angle", status: null },
+      { label: "Tempo", value: "--", numericValue: 0, hint: "backswing:downswing", status: null },
+    ];
+    return <EnhancedMetricCards metrics={emptyMetrics} />;
+  }
+
   const enhancedMetrics = [
     { 
       label: "Club Path", 
