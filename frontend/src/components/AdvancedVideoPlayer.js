@@ -25,6 +25,8 @@ export default function AdvancedVideoPlayer({
   const [annotations, setAnnotations] = useState([]);
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [videoError, setVideoError] = useState(null);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
 
   // Swing phases for frame analysis
   const swingPhases = [
