@@ -319,6 +319,12 @@ export default function SwingalyzeDebug() {
           </div>
         )}
 
+        {hasAnalyzed && !error && (
+          <div className="mb-4 flex items-center gap-2 rounded-xl border border-green-400/50 bg-green-900/50 p-3 text-sm text-green-200">
+            <CheckCircle2 className="h-4 w-4" /> Analysis complete! Results updated below.
+          </div>
+        )}
+
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
           {/* Upload Section */}
           <div className="lg:col-span-2">
