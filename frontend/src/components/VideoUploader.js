@@ -37,9 +37,20 @@ const VideoUploader = ({ onUpload, isLoading }) => {
   };
 
   // Handle mobile/tablet click to open file picker
-  const handleUploadClick = () => {
+  const handleUploadClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (!uploading && fileInputRef.current) {
+      console.log('Upload button clicked!'); // Debug log
       fileInputRef.current.click();
+    }
+  };
+
+  // Handle upload zone click (for drag & drop area)
+  const handleZoneClick = (e) => {
+    // Only trigger if clicking on the zone itself, not the button
+    if (e.target === e.currentTarget || e.target.closest('.upload-content')) {
+      handleUploadClick(e);
     }
   };
 
