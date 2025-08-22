@@ -267,6 +267,16 @@ export default function SwingalyzeDebug() {
             <p className="text-gray-300">Professional golf swing analysis with AI-powered insights</p>
           </div>
           <div className="flex items-center gap-2">
+            <label className="flex items-center gap-2 text-white">
+              <input 
+                type="checkbox" 
+                checked={quickMode}
+                onChange={(e) => setQuickMode(e.target.checked)}
+                className="rounded"
+              />
+              <Zap className="h-4 w-4" />
+              <span className="text-sm">Quick Analysis (&lt;3s)</span>
+            </label>
             <button 
               className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl border border-white/20 transition-colors"
               onClick={() => startAnalyze("/demo/demo-swing.mp4")}
