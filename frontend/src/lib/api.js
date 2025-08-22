@@ -58,7 +58,10 @@ export async function uploadFile(file, quickMode = false) {
       quickResult: result 
     };
   } else {
-    return { url: result.video_path, jobId: result.id };
+    return { 
+      url: result.video_path, 
+      jobId: result.analysis_id || result.id  // Handle both possible field names
+    };
   }
 }
 
