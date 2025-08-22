@@ -108,7 +108,7 @@ async def upload_video(request: Request, file: UploadFile = File(...)):
         if not is_video_file(file.content_type, file.filename):
             raise HTTPException(
                 status_code=400, 
-                detail=f"Unsupported file format. Supported formats: {', '.join(SUPPORTED_VIDEO_FORMATS)}"
+                detail=f"Unsupported file format. Supported formats: MP4, AVI, MOV, MKV, WebM, OGG, 3GP, FLV, WMV"
             )
         
         # Generate unique filename
@@ -154,6 +154,9 @@ async def upload_video(request: Request, file: UploadFile = File(...)):
         logger.info(f"Successfully uploaded video: {file.filename} ({file_size} bytes)")
         return video_upload
         
+    except HTTPException:
+        # Re-raise HTTP exceptions (like validation errors) as-is
+        raise
     except Exception as e:
         logger.error(f"Upload error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
