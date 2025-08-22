@@ -375,6 +375,13 @@ export default function SwingalyzeDebug() {
             >
               <Sparkles className="h-4 w-4" /> Quick Analyze
             </button>
+            <button 
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-colors"
+              onClick={resetAllStates}
+              title="Reset all states and clear any stuck processes"
+            >
+              <TimerReset className="h-4 w-4" /> Reset
+            </button>
           </div>
         </div>
 
