@@ -448,7 +448,7 @@ export default function SwingalyzeDebug() {
                 </div>
               )}
 
-              <MetricsStrip m={job?.metrics} />
+              <MetricsStrip m={job?.metrics} hasAnalyzed={hasAnalyzed} />
 
               {/* Tabs */}
               <div className="mt-6">
