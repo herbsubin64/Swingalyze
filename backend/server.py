@@ -176,15 +176,26 @@ class GolfPoseDetector:
     
     def calculate_joint_angle(self, point1, point2, point3):
         """Calculate angle between three points"""
-        # Create vectors
-        vector1 = np.array([point1['x'] - point2['x'], point1['y'] - point2['y']])
-        vector2 = np.array([point3['x'] - point2['x'], point3['y'] - point2['y']])
-        
-        # Calculate angle using dot product
-        cosine_angle = np.dot(vector1, vector2) / (np.linalg.norm(vector1) * np.linalg.norm(vector2))
-        angle = np.arccos(np.clip(cosine_angle, -1.0, 1.0))
-        
-        return np.degrees(angle)
+        try:
+            # Create vectors
+            vector1 = np.array([point1['x'] - point2['x'], point1['y'] - point2['y']])
+            vector2 = np.array([point3['x'] - point2['x'], point3['y'] - point2['y']])
+            
+            # Check for zero-length vectors (division by zero protection)
+            norm1 = np.linalg.norm(vector1)
+            norm2 = np.linalg.norm(vector2)
+            
+            if norm1 == 0 or norm2 == 0:
+                return 0.0  # Return 0 degrees if vectors are zero-length
+            
+            # Calculate angle using dot product
+            cosine_angle = np.dot(vector1, vector2) / (norm1 * norm2)
+            angle = np.arccos(np.clip(cosine_angle, -1.0, 1.0))
+            
+            return np.degrees(angle)
+        except Exception as e:
+            print(f"Error calculating joint angle: {e}")
+            return 0.0
     
     def calculate_spine_angle(self, left_shoulder, right_shoulder, left_hip, right_hip):
         """Calculate spine angle for posture analysis"""
