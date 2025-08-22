@@ -25,6 +25,7 @@ export async function uploadFile(file, quickMode = false) {
   const response = await fetch(endpoint, {
     method: 'POST',
     body: formData,
+    signal: AbortSignal.timeout(25000) // 25 second timeout
   });
 
   console.log(`Response status: ${response.status} ${response.statusText}`);
