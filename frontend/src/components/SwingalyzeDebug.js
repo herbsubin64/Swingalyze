@@ -221,8 +221,13 @@ export default function SwingalyzeDebug() {
       setError("File too large (max 200MB)");
       return;
     }
+    
+    // Reset all states
     setUploading(true);
     setError(null);
+    setHasAnalyzed(false);
+    setJob(null);
+    setAnalysisResults(null);
     
     console.log("Starting file upload:", file.name, file.size, "bytes");
     
@@ -230,10 +235,19 @@ export default function SwingalyzeDebug() {
     const videoUrl = URL.createObjectURL(file);
     setUploadedVideoUrl(videoUrl);
     
+    // Set a timeout to prevent infinite spinning
+    const uploadTimeout = setTimeout(() => {
+      if (uploading) {
+        setUploading(false);
+        setError("Analysis timed out. Please try again.");
+      }
+    }, 30000); // 30 second timeout
+    
     try {
       console.log("Calling uploadFile with quickMode:", quickMode);
       const { url, jobId, quickResult } = await uploadFile(file, quickMode);
       
+      clearTimeout(uploadTimeout); // Clear timeout on success
       console.log("Upload response:", { url, jobId, quickResult });
       
       if (quickResult) {
@@ -271,11 +285,14 @@ export default function SwingalyzeDebug() {
           console.log("Job update:", j);
           setJob(j);
         });
+        setHasAnalyzed(true);
         setJob(final);
       }
     } catch (e) {
+      clearTimeout(uploadTimeout); // Clear timeout on error
       console.error("Upload/analysis failed:", e);
       setError(e?.message || "Upload failed");
+      setHasAnalyzed(false);
     } finally {
       setUploading(false);
     }
