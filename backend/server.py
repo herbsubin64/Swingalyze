@@ -13,6 +13,7 @@ import aiofiles
 import json
 from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContentWithMimeType
 import asyncio
+from fast_analysis import FastSwingAnalyzer
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
