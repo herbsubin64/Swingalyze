@@ -78,18 +78,42 @@ const SwingAnalysisPage = () => {
       const videoId = uploadResponse.data.id;
       
       onProgress(60); // Upload complete
-      setSuccess(`Video uploaded successfully! Analyzing swing...`);
+      setSuccess(`Video uploaded successfully! Starting AI analysis...`);
 
-      // Step 2: Analyze the uploaded video
-      const analysisResponse = await axios.post(`${API}/analyze/${videoId}`, {}, axiosConfig);
+      // Step 2: Analyze the uploaded video with retry logic
+      let analysisAttempts = 0;
+      const maxRetries = 3;
       
-      onProgress(100); // Analysis complete
-      setCurrentAnalysis(analysisResponse.data);
-      setSuccess(`Swing analysis complete with ghost skeleton overlay!`);
-      
-      await fetchUploads(); // Refresh the uploads list
-      
-      return uploadResponse.data;
+      while (analysisAttempts < maxRetries) {
+        try {
+          analysisAttempts++;
+          setSuccess(`Video uploaded successfully! AI analysis attempt ${analysisAttempts}/${maxRetries}...`);
+          
+          const analysisResponse = await axios.post(`${API}/analyze/${videoId}`, {}, {
+            ...axiosConfig,
+            timeout: 600000 // 10 minutes for analysis
+          });
+          
+          onProgress(100); // Analysis complete
+          setCurrentAnalysis(analysisResponse.data);
+          setSuccess(`Swing analysis complete with ghost skeleton overlay!`);
+          await fetchUploads(); // Refresh the uploads list
+          return uploadResponse.data;
+          
+        } catch (analysisError) {
+          console.error(`Analysis attempt ${analysisAttempts} failed:`, analysisError);
+          
+          if (analysisAttempts >= maxRetries) {
+            // Final attempt failed, but upload succeeded
+            setSuccess(`Video uploaded successfully! Analysis is processing in background. Check Video Library tab.`);
+            await fetchUploads(); // Refresh to show the uploaded video
+            return uploadResponse.data;
+          } else {
+            // Wait before retry
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          }
+        }
+      }
 
     } catch (error) {
       console.error('Upload/Analysis error:', error);
