@@ -179,7 +179,7 @@ export default function SwingalyzeDebug() {
   const resetAllStates = () => {
     addDebugLog('Resetting all states', 'action');
     setUploading(false);
-    setBusy(false);
+    setBusy(false);  // Ensure both are false
     setError(null);
     setUploadedVideoUrl(null);
     setAnalysisResults(null);
@@ -191,6 +191,7 @@ export default function SwingalyzeDebug() {
     if (uploadedVideoUrl) {
       URL.revokeObjectURL(uploadedVideoUrl);
     }
+    addDebugLog('All states reset successfully', 'success');
   };
 
   async function startAnalyze(fromUrl) {
