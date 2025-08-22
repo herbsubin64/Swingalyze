@@ -128,8 +128,15 @@ export default function SwingalyzeDebug() {
   const [quickMode, setQuickMode] = useState(true); // Default to quick mode
   const [hasAnalyzed, setHasAnalyzed] = useState(false); // Track if analysis completed
 
-  const radarData = job?.radar?.length ? job.radar : fallbackRadar;
-  const tempoData = job?.tempo?.length ? job.tempo : fallbackTempo;
+  const radarData = job?.radar?.length ? job.radar : (hasAnalyzed ? fallbackRadar : [
+    { metric: "Club Path", score: 0 },
+    { metric: "Face Angle", score: 0 },
+    { metric: "Attack Angle", score: 0 },
+    { metric: "Tempo", score: 0 },
+    { metric: "Rotation", score: 0 },
+    { metric: "Speed", score: 0 }
+  ]);
+  const tempoData = job?.tempo?.length ? job.tempo : (hasAnalyzed ? fallbackTempo : []);
 
   // Generate swing path overlay for video
   const swingPath = useMemo(() => [
