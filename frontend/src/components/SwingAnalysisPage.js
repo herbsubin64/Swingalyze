@@ -147,12 +147,23 @@ const SwingAnalysisPage = () => {
     setCurrentAnalysis(null);
 
     try {
-      const response = await axios.post(`${API}/analyze/${videoId}`, {}, axiosConfig);
+      setSuccess('Starting AI swing analysis with ghost skeleton...');
+      
+      const response = await axios.post(`${API}/analyze/${videoId}`, {}, {
+        ...axiosConfig,
+        timeout: 600000 // 10 minutes for analysis
+      });
+      
       setCurrentAnalysis(response.data);
       setSuccess('Swing analysis complete with ghost skeleton overlay!');
     } catch (error) {
       console.error('Analysis error:', error);
-      setError('Failed to analyze swing. Please try again.');
+      
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        setError('Analysis is taking longer than expected. The video is still being processed in the background. Please check back in a few minutes or try a shorter video.');
+      } else {
+        setError('Failed to analyze swing. Please try again with a clearer video or check your internet connection.');
+      }
     } finally {
       setIsLoading(false);
     }
