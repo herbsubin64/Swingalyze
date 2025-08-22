@@ -11,7 +11,7 @@ const API = `${BACKEND_URL}/api`;
 
 // Configure axios with extended timeout and retry logic
 const axiosConfig = {
-  timeout: 300000, // 5 minutes timeout
+  timeout: 600000, // 10 minutes timeout (increased from 5)
   maxBodyLength: Infinity,
   maxContentLength: Infinity,
 };
