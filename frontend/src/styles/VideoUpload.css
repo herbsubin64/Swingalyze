@@ -139,11 +139,16 @@
   background: #f9fafb;
   position: relative;
   overflow: hidden;
+  min-height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .upload-zone:hover {
   border-color: #667eea;
   background: #f0f4ff;
+  transform: scale(1.01);
 }
 
 .upload-zone.drag-active {
