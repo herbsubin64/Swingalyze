@@ -2,7 +2,7 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { 
   Play, Pause, SkipBack, SkipForward, RotateCcw, Settings,
-  Maximize, Minimize, Clock, Zap, Target, Pen, Square, Circle
+  Maximize, Minimize, Clock, Zap, Target, Pen, Square, Circle, AlertTriangle
 } from 'lucide-react';
 
 export default function AdvancedVideoPlayer({ 
