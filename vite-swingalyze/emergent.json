@@ -1,0 +1,22 @@
+{
+  "$schema": "https://app.emergent.sh/schema.json",
+  "framework": "static",
+  "build": {
+    "command": "npm run build",
+    "output": "dist",
+    "node": "20"
+  },
+  "static": {
+    "headers": [
+      {
+        "source": "/:path*",
+        "headers": {
+          "X-Content-Type-Options": "nosniff",
+          "X-Frame-Options": "SAMEORIGIN",
+          "Referrer-Policy": "no-referrer-when-downgrade",
+          "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https: wss:; frame-ancestors 'self';"
+        }
+      }
+    ]
+  }
+}
