@@ -91,6 +91,8 @@ const VideoUploader = ({ onUpload, isLoading }) => {
           onChange={handleFileChange}
           disabled={uploading}
           style={{ display: 'none' }}
+          multiple={false}
+          capture="environment"
         />
 
         {!uploading ? (
