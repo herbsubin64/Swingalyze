@@ -3,6 +3,11 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 export async function uploadFile(file, quickMode = false) {
+  // Check file size on client side
+  if (file.size > 200 * 1024 * 1024) { // 200MB
+    throw new Error('File size must be less than 200MB');
+  }
+  
   const formData = new FormData();
   formData.append('video', file);
   formData.append('user_id', 'user_' + Math.random().toString(36).substr(2, 9));
