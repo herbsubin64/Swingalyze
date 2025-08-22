@@ -132,8 +132,9 @@ export default function EnhancedUploadZone({ onFile, analyzing = false, progress
         </div>
       )}
 
-      <div className="text-xs text-gray-500 text-center">
-        Supported formats: MP4, MOV, AVI, WebM, JPG, PNG • Max size: 200MB
+      <div className="text-xs text-gray-500 text-center space-y-1">
+        <div>Supported formats: MP4, MOV, AVI, WebM, JPG, PNG • Max size: 200MB</div>
+        <div className="text-yellow-600">⚠️ Note: .MOV files may not play in all browsers. MP4 recommended.</div>
       </div>
     </div>
   );
