@@ -1,16 +1,19 @@
-// SwingAlyze API Integration Layer
+// SwingAlyze API Integration Layer with Fast Analysis
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-export async function uploadFile(file) {
+export async function uploadFile(file, quickMode = false) {
   const formData = new FormData();
   formData.append('video', file);
   formData.append('user_id', 'user_' + Math.random().toString(36).substr(2, 9));
   formData.append('swing_type', 'full_swing');
   formData.append('club_type', 'driver');
-  formData.append('notes', 'Debug studio upload');
+  formData.append('notes', quickMode ? 'Quick analysis mode' : 'Debug studio upload');
+  formData.append('quick_mode', quickMode.toString());
 
-  const response = await fetch(`${API}/analyze-swing`, {
+  const endpoint = quickMode ? `${API}/quick-analyze` : `${API}/analyze-swing`;
+  
+  const response = await fetch(endpoint, {
     method: 'POST',
     body: formData,
   });
@@ -21,7 +24,54 @@ export async function uploadFile(file) {
   }
 
   const result = await response.json();
-  return { url: result.video_path, jobId: result.id };
+  
+  if (quickMode) {
+    return { 
+      url: result.video_path, 
+      jobId: result.analysis_id,
+      quickResult: result 
+    };
+  } else {
+    return { url: result.video_path, jobId: result.id };
+  }
+}
+
+export async function quickAnalyzeFromUrl(videoUrl) {
+  // For demo/quick analysis from URL
+  return {
+    jobId: 'quick_' + Math.random().toString(36).substr(2, 9),
+    quickResult: {
+      analysis_id: 'demo_quick',
+      processing_time: '1.2 seconds',
+      metrics: {
+        club_path_deg: 1.8,
+        face_to_path_deg: -0.9,
+        attack_angle_deg: -3.2,
+        tempo_ratio: 3.1,
+        shoulder_rotation_deg: 48,
+        hip_rotation_deg: 33,
+        swing_speed_mph: 94.2
+      },
+      swing_path: [
+        { x: 0.25, y: 0.75 },
+        { x: 0.4, y: 0.55 },
+        { x: 0.55, y: 0.35 },
+        { x: 0.7, y: 0.3 },
+        { x: 0.8, y: 0.25 }
+      ],
+      key_positions: [
+        { x: 0.25, y: 0.75, label: 'Address', color: '#3b82f6' },
+        { x: 0.55, y: 0.35, label: 'Impact', color: '#ef4444' },
+        { x: 0.8, y: 0.25, label: 'Follow Through', color: '#10b981' }
+      ],
+      recommendations: [
+        'Great swing plane - maintain this path',
+        'Work on consistent tempo',
+        'Focus on balance at finish'
+      ],
+      confidence: 0.92
+    }
+  };
 }
 
 export async function analyzeFromUrl(url, sport = "golf") {
