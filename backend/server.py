@@ -451,9 +451,43 @@ async def analyze_swing(
         
         return swing_analysis
         
+    except HTTPException as he:
+        # Re-raise HTTP exceptions as-is
+        raise he
     except Exception as e:
         logging.error(f"Error analyzing swing: {e}")
-        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+        # Return a fallback analysis instead of crashing
+        fallback_analysis = SwingAnalysisResult(
+            user_id=user_id,
+            video_filename=video.filename if video else "unknown",
+            video_path="error",
+            overall_assessment="Analysis encountered an error. Please try again.",
+            key_strengths=["File uploaded successfully"],
+            areas_for_improvement=["Please try re-uploading the video"],
+            specific_recommendations=["Check video format and file size"],
+            drill_suggestions=["Try a different video format"],
+            metrics=SwingMetrics(
+                overall_score=0,
+                stance_score=0,
+                backswing_score=0,
+                downswing_score=0,
+                impact_score=0,
+                follow_through_score=0,
+                tempo_score=0,
+                balance_score=0,
+                club_path_score=0,
+                face_angle_score=0
+            ),
+            stance_analysis="Analysis failed",
+            backswing_analysis="Analysis failed",
+            downswing_analysis="Analysis failed",
+            impact_analysis="Analysis failed",
+            follow_through_analysis="Analysis failed",
+            tempo_analysis="Analysis failed",
+            balance_analysis="Analysis failed",
+            consistency_notes="Please try uploading again"
+        )
+        return fallback_analysis
 
 @api_router.get("/swing-analysis/{analysis_id}", response_model=SwingAnalysisResult)
 async def get_swing_analysis(analysis_id: str):
