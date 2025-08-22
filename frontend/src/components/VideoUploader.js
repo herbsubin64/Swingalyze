@@ -92,7 +92,7 @@ const VideoUploader = ({ onUpload, isLoading }) => {
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
-        onClick={handleUploadClick}
+        onClick={handleZoneClick}
         style={{ cursor: uploading ? 'not-allowed' : 'pointer' }}
       >
         <input
