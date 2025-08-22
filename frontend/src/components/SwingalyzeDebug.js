@@ -220,6 +220,7 @@ export default function SwingalyzeDebug() {
         console.log("Quick analysis result received:", quickResult);
         // Quick analysis results
         setAnalysisResults(quickResult);
+        setHasAnalyzed(true); // Mark as analyzed
         setJob({
           id: jobId,
           status: "succeeded",
