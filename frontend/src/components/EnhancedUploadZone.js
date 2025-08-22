@@ -7,15 +7,33 @@ export default function EnhancedUploadZone({ onFile, analyzing = false, progress
   const [error, setError] = useState(null);
 
   const validateFile = (file) => {
-    const maxSize = 100 * 1024 * 1024; // 100MB
-    const allowedTypes = ['video/mp4', 'video/mov', 'video/avi', 'image/jpeg', 'image/png'];
+    const maxSize = 200 * 1024 * 1024; // 200MB (increased for larger golf videos)
+    const allowedTypes = [
+      'video/mp4', 
+      'video/mov', 
+      'video/quicktime',  // For .MOV files
+      'video/avi', 
+      'video/x-msvideo',
+      'video/webm',
+      'video/3gpp',
+      'video/x-ms-wmv',
+      'image/jpeg', 
+      'image/jpg',
+      'image/png',
+      'image/webp'
+    ];
+    
+    // Check file extension as backup
+    const fileName = file.name.toLowerCase();
+    const allowedExtensions = ['.mp4', '.mov', '.avi', '.webm', '.3gp', '.wmv', '.jpg', '.jpeg', '.png', '.webp'];
+    const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
     
     if (file.size > maxSize) {
-      return 'File size must be less than 100MB';
+      return 'File size must be less than 200MB';
     }
     
-    if (!allowedTypes.includes(file.type)) {
-      return 'Please upload MP4, MOV, AVI, JPG, or PNG files only';
+    if (!allowedTypes.includes(file.type) && !hasValidExtension) {
+      return 'Please upload MP4, MOV, AVI, WebM, JPG, or PNG files only';
     }
     
     return null;
