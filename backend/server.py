@@ -331,24 +331,30 @@ def is_video_file(content_type: str, filename: str) -> bool:
 def is_valid_video_content(content: bytes) -> bool:
     """
     Validate video file content by checking for common video file signatures
+    More lenient validation to allow legitimate video files
     """
-    if len(content) < 12:  # Need at least 12 bytes for most signatures
+    if len(content) < 4:  # Need at least 4 bytes for basic checks
         return False
     
     # Common video file signatures (magic numbers)
     video_signatures = [
-        # MP4/MOV signatures
-        b'\x00\x00\x00\x18ftypmp4',  # MP4
-        b'\x00\x00\x00\x20ftypmp4',  # MP4
-        b'\x00\x00\x00\x1cftypisom', # MP4 ISO
-        b'\x00\x00\x00\x20ftypisom', # MP4 ISO
-        b'\x00\x00\x00\x18ftypM4V',  # M4V
-        b'\x00\x00\x00\x18ftypqt',   # QuickTime
+        # MP4/MOV signatures - more comprehensive
+        b'ftyp',  # General MP4/MOV indicator (can appear after initial bytes)
+        b'\x00\x00\x00\x18ftyp',  # MP4
+        b'\x00\x00\x00\x20ftyp',  # MP4
+        b'\x00\x00\x00\x1cftyp', # MP4 ISO
+        b'ftypmp4',  # MP4
+        b'ftypisom', # MP4 ISO
+        b'ftypM4V',  # M4V
+        b'ftypqt',   # QuickTime
+        b'ftyp3gp',  # 3GP
+        b'ftypMSNV', # Sony PSP
         
         # AVI signature
-        b'RIFF',  # AVI (check for RIFF header)
+        b'RIFF',  # AVI (RIFF header)
+        b'AVI ',  # AVI format identifier
         
-        # WebM signature
+        # WebM/MKV signature
         b'\x1a\x45\xdf\xa3',  # WebM/MKV EBML header
         
         # OGG signature
@@ -356,27 +362,39 @@ def is_valid_video_content(content: bytes) -> bool:
         
         # FLV signature
         b'FLV\x01',  # FLV
+        b'FLV',      # FLV (more lenient)
         
-        # 3GP signature
-        b'\x00\x00\x00\x14ftyp3gp',  # 3GP
-        b'\x00\x00\x00\x18ftyp3gp',  # 3GP
+        # WMV/ASF signature
+        b'\x30\x26\xb2\x75',  # ASF header start
+        
+        # Additional video signatures
+        b'mdat',  # MP4 media data atom
+        b'moov',  # MP4 movie atom
     ]
     
-    # Check for video signatures
+    # Check first 32 bytes for any video signature
+    check_bytes = content[:32] if len(content) >= 32 else content
+    
     for signature in video_signatures:
-        if content.startswith(signature):
-            return True
-        # Also check if signature appears within first 12 bytes for some formats
-        if signature in content[:12]:
+        if signature in check_bytes:
             return True
     
-    # Special case for AVI - check for AVI signature pattern
-    if content.startswith(b'RIFF') and b'AVI ' in content[:12]:
-        return True
-    
-    # Special case for WMV - check for ASF header
-    if content.startswith(b'\x30\x26\xb2\x75\x8e\x66\xcf\x11\xa6\xd9\x00\xaa\x00\x62\xce\x6c'):
-        return True
+    # Special patterns for different video formats
+    try:
+        # Check for RIFF + AVI pattern
+        if b'RIFF' in check_bytes and b'AVI' in content[:100]:
+            return True
+        
+        # Check for MP4 box structure (ftyp box)
+        if b'ftyp' in content[:100]:
+            return True
+        
+        # Check for QuickTime movie header
+        if b'mdat' in content[:100] or b'moov' in content[:100]:
+            return True
+            
+    except:
+        pass
     
     return False
 
