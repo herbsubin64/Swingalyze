@@ -267,11 +267,10 @@ export default function SwingalyzeDebug() {
     
     // Set a timeout to prevent infinite spinning
     const uploadTimeout = setTimeout(() => {
-      if (uploading) {
-        addDebugLog('Upload/analysis timed out after 30 seconds', 'error');
-        setUploading(false);
-        setError("Analysis timed out. Please try again or use the Reset button.");
-      }
+      addDebugLog('Upload/analysis timed out after 30 seconds', 'error');
+      setUploading(false);
+      setBusy(false); // Clear both states on timeout
+      setError("Analysis timed out. Please try again or use the Reset button.");
     }, 30000); // 30 second timeout
     
     try {
