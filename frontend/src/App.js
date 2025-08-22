@@ -35,6 +35,12 @@ const Home = () => {
               >
                 Debug Studio
               </button>
+              <button 
+                onClick={() => navigate('/diagnostic')}
+                className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                Diagnostic Test
+              </button>
             </div>
           </div>
         </div>
