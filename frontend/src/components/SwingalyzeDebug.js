@@ -168,6 +168,31 @@ export default function SwingalyzeDebug() {
     { x: 0.8, y: 0.3, color: '#10b981', label: 'Follow Through' }
   ], []);
 
+  // Debug logging function
+  const addDebugLog = (message, type = 'info') => {
+    const timestamp = new Date().toLocaleTimeString();
+    setDebugLog(prev => [...prev.slice(-4), { timestamp, message, type }]); // Keep last 5 logs
+    console.log(`[SwingAlyze Debug ${timestamp}] ${message}`);
+  };
+
+  // Reset all states to initial values
+  const resetAllStates = () => {
+    addDebugLog('Resetting all states', 'action');
+    setUploading(false);
+    setBusy(false);
+    setError(null);
+    setUploadedVideoUrl(null);
+    setAnalysisResults(null);
+    setJob(null);
+    setHasAnalyzed(false);
+    setVideoError(false);
+    setUrl("");
+    // Clear any existing object URLs to prevent memory leaks
+    if (uploadedVideoUrl) {
+      URL.revokeObjectURL(uploadedVideoUrl);
+    }
+  };
+
   async function startAnalyze(fromUrl) {
     setError(null);
     setBusy(true);
