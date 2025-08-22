@@ -124,6 +124,8 @@ export default function SwingalyzeDebug() {
   const [uploading, setUploading] = useState(false);
   const [uploadedVideoUrl, setUploadedVideoUrl] = useState(null);
   const [activeTab, setActiveTab] = useState("radar");
+  const [analysisResults, setAnalysisResults] = useState(null);
+  const [quickMode, setQuickMode] = useState(true); // Default to quick mode
 
   const radarData = job?.radar?.length ? job.radar : fallbackRadar;
   const tempoData = job?.tempo?.length ? job.tempo : fallbackTempo;
