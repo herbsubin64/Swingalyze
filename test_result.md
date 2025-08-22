@@ -143,6 +143,9 @@ backend:
         - working: true
           agent: "main"
           comment: "200MB file size limit, multiple video formats supported"
+        - working: true
+          agent: "testing"
+          comment: "✅ TESTED: File upload handling working correctly. Supports MP4, MOV, AVI formats. 200MB limit enforced. Invalid file formats properly rejected with 400 status. Upload directory (/app/backend/uploads) functioning. Files stored with UUID naming."
 
 frontend:
   - task: "Debug Studio UI with advanced video player"
