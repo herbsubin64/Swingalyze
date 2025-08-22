@@ -328,8 +328,10 @@ export default function SwingalyzeDebug() {
       setError(errorMsg);
       setHasAnalyzed(false);
     } finally {
+      // CRITICAL FIX: Clear both uploading AND busy states
       setUploading(false);
-      addDebugLog('Upload process finished', 'info');
+      setBusy(false);
+      addDebugLog('Upload process finished - all states cleared', 'info');
     }
   }
 
