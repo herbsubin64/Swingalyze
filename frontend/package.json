@@ -1,7 +1,7 @@
 {
-  "name": "swing-ghost-skeleton-pro",
+  "name": "swing-ghost-skeleton",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.0.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,10 +10,10 @@
     "start": "vite preview --host --port 3000"
   },
   "dependencies": {
+    "@tensorflow-models/pose-detection": "^3.5.0",
     "@tensorflow/tfjs-backend-webgl": "^4.20.0",
     "@tensorflow/tfjs-converter": "^4.20.0",
     "@tensorflow/tfjs-core": "^4.20.0",
-    "@tensorflow/tfjs": "^4.20.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
@@ -21,7 +21,5 @@
     "@vitejs/plugin-react": "^4.3.1",
     "vite": "^5.4.0"
   },
-  "engines": {
-    "node": ">=18.17.0"
-  }
+  "engines": { "node": ">=18.17.0" }
 }

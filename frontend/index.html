@@ -1,36 +1,26 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-  <title>Swingalyze – Ghost + Insights</title>
-  <style>
-    :root{--bg:#0c0f14;--card:#141a22;--muted:#8ea0b3}
-    html,body,#root{height:100%;margin:0}
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:var(--bg);color:#e9eef4}
-    .container{padding:18px;max-width:1200px;margin:0 auto}
-    .grid{display:grid;grid-template-columns:1fr 300px;gap:14px}
-    .card{background:var(--card);border:1px solid #1f2733;border-radius:14px;padding:14px}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .btn,.label{padding:10px 14px;border-radius:10px;border:1px solid #2a3442;background:#16202c;color:#e9eef4;cursor:pointer}
-    .btn[disabled]{opacity:.5;cursor:not-allowed}
-    input[type="range"]{width:140px}
-    .hint{font-size:12px;color:var(--muted)}
-    .stage{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000;box-shadow:0 8px 30px rgba(0,0,0,.35);border:1px solid #1b2330}
-    video,canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
-    .title{margin:0 0 8px 0}
-    .pill{font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid #2a3442;background:#0f1620}
-    .ok{color:#6ee7a9;border-color:#2e4a3b;background:#102216}
-    .warn{color:#ffd166;border-color:#514528;background:#261f0f}
-    .bad{color:#ff7b7b;border-color:#5a3434;background:#261313}
-    .badge{font-size:11px;color:#a7b4c4}
-    ul.ins{list-style:none;padding:0;margin:0}
-    ul.ins li{padding:8px 10px;border-radius:10px;border:1px solid #253042;background:#0e141d;margin-bottom:8px}
-    .tiny{font-size:11px;color:#93a6bb}
-  </style>
-</head>
-<body>
-  <div id="root"></div>
-  <script type="module" src="/src/main.jsx"></script>
-</body>
+  <head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <title>Swing Ghost Skeleton</title>
+    <style>
+      :root{--bg:#0b0f14;--card:#141a1f;--muted:#8ea0b3}
+      html,body,#root{height:100%;margin:0}
+      body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:var(--bg);color:#e9eef4}
+      .container{padding:16px;max-width:980px;margin:0 auto}
+      .stage{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden;border:1px solid #1e2530;box-shadow:0 10px 34px rgba(0,0,0,.35)}
+      video,canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+      .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0}
+      .btn,.label{padding:10px 14px;border-radius:10px;border:1px solid #2a3442;background:#16202c;color:#e9eef4;cursor:pointer}
+      .label input{display:none}
+      .hint{font-size:12px;color:var(--muted)}
+      .toast{position:fixed;right:12px;bottom:12px;background:#121a25;border:1px solid #243248;padding:10px 12px;border-radius:10px;color:#cfe3ff;box-shadow:0 6px 22px rgba(0,0,0,.35);font-size:13px}
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <div id="toast" class="toast" style="display:none"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
