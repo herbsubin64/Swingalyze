@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import axios from 'axios';
-import SwingAnalyzer from './components/SwingAnalyzer.jsx';
+import SwingAnalyzer from './components/SwingAnalyzer.js';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card';
 import { Button } from './components/ui/button';
 import { TrendingUp, Trophy, Zap, Target, LineChart, BarChart3, Settings, User, Download } from 'lucide-react';
