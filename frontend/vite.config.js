@@ -11,11 +11,15 @@ export default defineConfig({
     assetsInlineLimit: 0 
   },
   server: { 
-    host: true, 
-    port: 3000 
+    host: '0.0.0.0', 
+    port: 3000,
+    hmr: {
+      port: 3000,
+      host: 'localhost'
+    }
   },
   preview: { 
-    host: true, 
+    host: '0.0.0.0', 
     port: 3000 
   }
 })
