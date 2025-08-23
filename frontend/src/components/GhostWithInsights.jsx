@@ -115,13 +115,15 @@ function Player(){
     let cancelled = false
     ;(async () => {
       setBusy(true)
-      await tf.setBackend('webgl'); await tf.ready()
-      const detector = await poseDetection.createDetector(
-        poseDetection.SupportedModels.MoveNet,
-        { modelType: 'lightning' }
-      )
-      if (!cancelled) detectorRef.current = detector
-      setBusy(false)
+      const detector = new MoveNetDetector()
+      const loaded = await detector.load()
+      if (!cancelled && loaded) {
+        detectorRef.current = detector
+        setBusy(false)
+      } else if (!cancelled) {
+        setBusy(false)
+        console.error('Failed to load pose detection model')
+      }
     })()
     return ()=>{ cancelled = true }
   }, [])
