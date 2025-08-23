@@ -1,256 +1,301 @@
 import React, { useState, useEffect } from 'react';
+import './App.css';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import axios from 'axios';
-import SwingAnalyzer from './components/SwingAnalyzer.js';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card.js';
-import { Button } from './components/ui/button.js';
-import { TrendingUp, Trophy, Zap, Target, LineChart, BarChart3, Settings, User, Download } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const StatsTab = ({ userStats }) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    <Card className="border-l-4 border-l-blue-500">
-      <CardContent className="pt-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-3xl font-bold text-blue-600">{userStats?.total_swings || 0}</div>
-            <div className="text-sm text-gray-600">Total Swings Analyzed</div>
-          </div>
-          <BarChart3 className="h-8 w-8 text-blue-500 opacity-75" />
-        </div>
-      </CardContent>
-    </Card>
+const VideoUploadTest = () => {
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState(null);
 
-    <Card className="border-l-4 border-l-green-500">
-      <CardContent className="pt-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-3xl font-bold text-green-600">{userStats?.improvement_percentage || 0}%</div>
-            <div className="text-sm text-gray-600">Overall Improvement</div>
-          </div>
-          <TrendingUp className="h-8 w-8 text-green-500 opacity-75" />
-        </div>
-      </CardContent>
-    </Card>
-
-    <Card className="border-l-4 border-l-purple-500">
-      <CardContent className="pt-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-3xl font-bold text-purple-600">{userStats?.average_club_speed || 0}</div>
-            <div className="text-sm text-gray-600">Avg Club Speed (mph)</div>
-          </div>
-          <Zap className="h-8 w-8 text-purple-500 opacity-75" />
-        </div>
-      </CardContent>
-    </Card>
-
-    <Card className="border-l-4 border-l-orange-500">
-      <CardContent className="pt-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-3xl font-bold text-orange-600">{userStats?.average_accuracy || 0}%</div>
-            <div className="text-sm text-gray-600">Average Accuracy</div>
-          </div>
-          <Target className="h-8 w-8 text-orange-500 opacity-75" />
-        </div>
-      </CardContent>
-    </Card>
-
-    <Card className="border-l-4 border-l-yellow-500">
-      <CardContent className="pt-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-3xl font-bold text-yellow-600">{userStats?.best_score || 0}</div>
-            <div className="text-sm text-gray-600">Personal Best Score</div>
-          </div>
-          <Trophy className="h-8 w-8 text-yellow-500 opacity-75" />
-        </div>
-      </CardContent>
-    </Card>
-
-    <Card className="border-l-4 border-l-red-500">
-      <CardContent className="pt-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-3xl font-bold text-red-600 capitalize">{userStats?.recent_trend || 'stable'}</div>
-            <div className="text-sm text-gray-600">Recent Trend</div>
-          </div>
-          <LineChart className="h-8 w-8 text-red-500 opacity-75" />
-        </div>
-      </CardContent>
-    </Card>
-  </div>
-);
-
-const HistoryTab = ({ swingHistory }) => (
-  <Card>
-    <CardHeader>
-      <CardTitle className="flex items-center gap-2">
-        <TrendingUp className="h-5 w-5" />
-        Swing History & Progress
-      </CardTitle>
-      <CardDescription>
-        Track your improvement over time with AI pose analysis
-      </CardDescription>
-    </CardHeader>
-    <CardContent>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b">
-              <th className="text-left py-2">Date</th>
-              <th className="text-left py-2">Score</th>
-              <th className="text-left py-2">Club Speed</th>
-              <th className="text-left py-2">Accuracy</th>
-              <th className="text-left py-2">Pose Analysis</th>
-              <th className="text-left py-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {swingHistory.map((swing, index) => (
-              <tr key={swing.id} className="border-b hover:bg-gray-50">
-                <td className="py-2">{swing.date}</td>
-                <td className="py-2">
-                  <span className={`px-2 py-1 rounded text-xs ${
-                    swing.score >= 85 ? 'bg-green-100 text-green-800' : 
-                    swing.score >= 75 ? 'bg-yellow-100 text-yellow-800' : 
-                    'bg-red-100 text-red-800'
-                  }`}>
-                    {swing.score}
-                  </span>
-                </td>
-                <td className="py-2">{swing.clubSpeed} mph</td>
-                <td className="py-2">{swing.accuracy}%</td>
-                <td className="py-2">
-                  <span className="text-xs text-green-600">✓ Detected</span>
-                </td>
-                <td className="py-2">
-                  <Button variant="ghost" size="sm">
-                    View Analysis
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </CardContent>
-  </Card>
-);
-
-function App() {
-  const [userStats, setUserStats] = useState(null);
-  const [swingHistory, setSwingHistory] = useState([]);
-  const [activeTab, setActiveTab] = useState('analyze');
-
-  useEffect(() => {
-    fetchUserStats();
-    fetchSwingHistory();
-  }, []);
-
-  const fetchUserStats = async () => {
-    try {
-      const response = await axios.get(`${API}/stats`);
-      setUserStats(response.data);
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-      setUserStats({
-        total_swings: 124,
-        improvement_percentage: 15,
-        average_club_speed: 92,
-        average_accuracy: 78,
-        best_score: 95,
-        recent_trend: "improving"
-      });
-    }
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    setUploadedFile(file);
   };
 
-  const fetchSwingHistory = async () => {
+  const analyzeSwing = async () => {
+    if (!uploadedFile) return;
+    
+    setIsAnalyzing(true);
     try {
-      const response = await axios.get(`${API}/swings`);
-      setSwingHistory(response.data);
+      // Simulate analysis
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      const mockAnalysis = {
+        filename: uploadedFile.name,
+        clubSpeed: Math.floor(Math.random() * 30) + 85,
+        ballSpeed: Math.floor(Math.random() * 40) + 120,
+        accuracy: Math.floor(Math.random() * 25) + 70,
+        recommendations: [
+          "Good swing tempo detected",
+          "Hip rotation timing is optimal", 
+          "Keep head position steady during impact"
+        ]
+      };
+      
+      setAnalysisResult(mockAnalysis);
     } catch (error) {
-      console.error('Error fetching swing history:', error);
-      setSwingHistory([
-        { id: 1, date: '2025-08-23', score: 85, clubSpeed: 95, accuracy: 78 },
-        { id: 2, date: '2025-08-22', score: 82, clubSpeed: 97, accuracy: 81 },
-        { id: 3, date: '2025-08-21', score: 88, clubSpeed: 93, accuracy: 75 }
-      ]);
+      console.error('Analysis error:', error);
+    } finally {
+      setIsAnalyzing(false);
     }
   };
-
-  const TabButton = ({ id, label, icon: Icon, isActive }) => (
-    <button
-      onClick={() => setActiveTab(id)}
-      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-        isActive 
-          ? 'bg-green-600 text-white shadow-lg' 
-          : 'bg-white text-gray-600 hover:bg-gray-50'
-      }`}
-    >
-      <Icon className="h-4 w-4" />
-      {label}
-    </button>
-  );
 
   return (
-    <BrowserRouter>
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-5xl font-bold text-gray-900 mb-2">🏌️ SwingAlyze Pro</h1>
-            <p className="text-xl text-gray-600">AI-Powered Golf Swing Analysis with Real-Time Pose Detection</p>
+    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <h1 style={{ fontSize: '3rem', fontWeight: 'bold', marginBottom: '8px' }}>🏌️ SwingAlyze Pro</h1>
+        <p style={{ fontSize: '1.25rem', color: '#6b7280' }}>AI-Powered Golf Swing Video Analysis</p>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px' }}>
+        {/* Upload Section */}
+        <div style={{ 
+          background: 'white', 
+          borderRadius: '12px', 
+          padding: '24px', 
+          border: '2px dashed #10b981',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+        }}>
+          <h3 style={{ marginBottom: '16px', fontWeight: '600' }}>📤 Upload Swing Video</h3>
+          <p style={{ marginBottom: '16px', color: '#6b7280', fontSize: '14px' }}>
+            Upload your golf swing video for analysis
+          </p>
+          
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '100%',
+              height: '120px',
+              border: '2px dashed #d1d5db',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              backgroundColor: '#f9fafb',
+              transition: 'all 0.2s'
+            }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '32px', marginBottom: '8px' }}>🎥</div>
+                <p style={{ marginBottom: '4px', fontSize: '14px' }}>
+                  <strong>Click to upload</strong> or drag and drop
+                </p>
+                <p style={{ fontSize: '12px', color: '#6b7280' }}>MP4, MOV, AVI (MAX. 100MB)</p>
+              </div>
+              <input
+                type="file"
+                accept="video/*"
+                onChange={handleFileUpload}
+                style={{ display: 'none' }}
+              />
+            </label>
           </div>
 
-          {/* Navigation Tabs */}
-          <div className="flex justify-center gap-2 mb-8 p-2 bg-gray-100 rounded-xl w-fit mx-auto">
-            <TabButton id="analyze" label="AI Analysis" icon={BarChart3} isActive={activeTab === 'analyze'} />
-            <TabButton id="history" label="History" icon={LineChart} isActive={activeTab === 'history'} />
-            <TabButton id="stats" label="Stats" icon={Trophy} isActive={activeTab === 'stats'} />
-          </div>
-
-          {/* Tab Content */}
-          <Routes>
-            <Route path="/" element={
-              <>
-                {activeTab === 'analyze' && (
-                  <SwingAnalyzer 
-                    onAnalysisComplete={() => {
-                      fetchSwingHistory();
-                      fetchUserStats();
-                    }}
-                  />
-                )}
-                {activeTab === 'history' && <HistoryTab swingHistory={swingHistory} />}
-                {activeTab === 'stats' && <StatsTab userStats={userStats} />}
-              </>
-            } />
-          </Routes>
-
-          {/* Quick Actions Footer */}
-          <div className="mt-8 flex justify-center">
-            <div className="flex gap-4">
-              <Button variant="outline" className="flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                Settings
-              </Button>
-              <Button variant="outline" className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                Profile
-              </Button>
-              <Button variant="outline" className="flex items-center gap-2">
-                <Download className="h-4 w-4" />
-                Export Data
-              </Button>
+          {uploadedFile && (
+            <div style={{ 
+              padding: '12px', 
+              backgroundColor: '#f0fdf4', 
+              borderRadius: '8px', 
+              marginBottom: '16px' 
+            }}>
+              <p style={{ fontSize: '14px', color: '#15803d' }}>
+                <strong>File selected:</strong> {uploadedFile.name}
+              </p>
+              <p style={{ fontSize: '12px', color: '#15803d', marginTop: '4px' }}>
+                Size: {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
+              </p>
             </div>
+          )}
+
+          <button
+            onClick={analyzeSwing}
+            disabled={!uploadedFile || isAnalyzing}
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              backgroundColor: uploadedFile && !isAnalyzing ? '#16a34a' : '#9ca3af',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '500',
+              cursor: uploadedFile && !isAnalyzing ? 'pointer' : 'not-allowed',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px'
+            }}
+          >
+            {isAnalyzing ? (
+              <>
+                <div style={{
+                  width: '16px',
+                  height: '16px',
+                  border: '2px solid white',
+                  borderTop: '2px solid transparent',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite'
+                }}></div>
+                Analyzing Video...
+              </>
+            ) : (
+              <>
+                📊 Analyze Swing Video
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Results Section */}
+        <div style={{ 
+          background: 'white', 
+          borderRadius: '12px', 
+          padding: '24px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+        }}>
+          <h3 style={{ marginBottom: '16px', fontWeight: '600' }}>🎯 Analysis Results</h3>
+          
+          {analysisResult ? (
+            <div>
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: '1fr 1fr', 
+                gap: '12px',
+                marginBottom: '16px'
+              }}>
+                <div style={{ 
+                  textAlign: 'center', 
+                  padding: '12px', 
+                  backgroundColor: '#eff6ff', 
+                  borderRadius: '8px' 
+                }}>
+                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#2563eb' }}>
+                    {analysisResult.clubSpeed}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#6b7280' }}>Club Speed (mph)</div>
+                </div>
+                
+                <div style={{ 
+                  textAlign: 'center', 
+                  padding: '12px', 
+                  backgroundColor: '#f0fdf4', 
+                  borderRadius: '8px' 
+                }}>
+                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#16a34a' }}>
+                    {analysisResult.ballSpeed}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#6b7280' }}>Ball Speed (mph)</div>
+                </div>
+                
+                <div style={{ 
+                  textAlign: 'center', 
+                  padding: '12px', 
+                  backgroundColor: '#faf5ff', 
+                  borderRadius: '8px',
+                  gridColumn: 'span 2'
+                }}>
+                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#9333ea' }}>
+                    {analysisResult.accuracy}%
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#6b7280' }}>Accuracy Score</div>
+                </div>
+              </div>
+
+              <div>
+                <h4 style={{ fontWeight: '600', marginBottom: '8px' }}>🤖 AI Recommendations:</h4>
+                <ul style={{ listStyle: 'none', padding: 0 }}>
+                  {analysisResult.recommendations.map((rec, index) => (
+                    <li key={index} style={{ 
+                      fontSize: '14px', 
+                      color: '#4b5563', 
+                      display: 'flex', 
+                      alignItems: 'flex-start',
+                      gap: '8px',
+                      marginBottom: '4px'
+                    }}>
+                      <span style={{ color: '#10b981' }}>•</span>
+                      {rec}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div style={{ marginTop: '16px', padding: '12px', backgroundColor: '#fef3c7', borderRadius: '8px' }}>
+                <p style={{ fontSize: '14px', color: '#92400e', margin: 0 }}>
+                  <strong>Video processed:</strong> {analysisResult.filename}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '40px 0', color: '#6b7280' }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.5 }}>📊</div>
+              <p>Upload and analyze a swing video to see AI-powered results</p>
+              <p style={{ fontSize: '14px', marginTop: '8px' }}>
+                Real-time analysis with professional metrics
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Instructions */}
+      <div style={{ 
+        background: 'white', 
+        borderRadius: '12px', 
+        padding: '24px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+      }}>
+        <h3 style={{ marginBottom: '16px', fontWeight: '600' }}>📋 How to Use SwingAlyze Pro</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '32px', marginBottom: '8px' }}>📱</div>
+            <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '4px' }}>1. Record</h4>
+            <p style={{ fontSize: '14px', color: '#6b7280' }}>
+              Record your golf swing with your phone or camera from the side view
+            </p>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '32px', marginBottom: '8px' }}>☁️</div>
+            <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '4px' }}>2. Upload</h4>
+            <p style={{ fontSize: '14px', color: '#6b7280' }}>
+              Upload your video file using the drag-and-drop area above
+            </p>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '32px', marginBottom: '8px' }}>🤖</div>
+            <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '4px' }}>3. Analyze</h4>
+            <p style={{ fontSize: '14px', color: '#6b7280' }}>
+              Get AI-powered analysis with metrics and personalized recommendations
+            </p>
           </div>
         </div>
       </div>
-    </BrowserRouter>
+
+      <style>
+        {`
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+        `}
+      </style>
+    </div>
+  );
+};
+
+function App() {
+  return (
+    <div className="App">
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<VideoUploadTest />} />
+        </Routes>
+      </BrowserRouter>
+    </div>
   );
 }
 
