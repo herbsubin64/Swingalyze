@@ -82,11 +82,7 @@ class MoveNetDetector {
 }
 
 export default function GhostWithInsights(){
-  return (
-    <InsightsProvider>
-      <Player/>
-    </InsightsProvider>
-  )
+  return <Player/>
 }
 
 function Player(){
