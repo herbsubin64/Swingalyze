@@ -3,19 +3,12 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/', 
+  // Root-relative asset URLs so /assets/*.js resolves on your domain
+  base: '/',
   build: {
     outDir: 'dist',
     target: 'es2017',
     sourcemap: true,
     assetsInlineLimit: 0
-  },
-  server: {
-    host: true,
-    port: 5173
-  },
-  preview: {
-    host: true,
-    port: 5173
   }
 })
