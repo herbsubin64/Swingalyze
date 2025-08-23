@@ -13,7 +13,7 @@ export default defineConfig({
     sourcemap: true, 
     assetsInlineLimit: 0,
     rollupOptions: {
-      external: ['@mediapipe/pose']
+      external: ['@mediapipe/pose', '@tensorflow/tfjs-backend-webgpu']
     }
   },
   optimizeDeps: {
@@ -22,7 +22,7 @@ export default defineConfig({
       '@tensorflow/tfjs-backend-webgl',
       '@tensorflow-models/pose-detection'
     ],
-    exclude: ['@mediapipe/pose']
+    exclude: ['@mediapipe/pose', '@tensorflow/tfjs-backend-webgpu']
   },
   server: { 
     host: '0.0.0.0', 
