@@ -969,6 +969,10 @@ async def get_swing_analysis(video_id: str):
         if not analysis:
             raise HTTPException(status_code=404, detail="Analysis not found")
         
+        # Remove MongoDB ObjectId to make it JSON serializable
+        if '_id' in analysis:
+            del analysis['_id']
+        
         return analysis
     except HTTPException:
         raise
