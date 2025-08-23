@@ -9,7 +9,7 @@ import { Input } from './ui/input'
 import { Label } from './ui/label'
 import { Upload, BarChart3, Target, FileVideo, Download, Camera, Play, RefreshCw } from 'lucide-react'
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://swing-error-help.preview.emergentagent.com';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const POSE_EDGES = [
