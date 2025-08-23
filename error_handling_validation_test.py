@@ -10,7 +10,7 @@ import os
 import sys
 
 class ErrorHandlingValidator:
-    def __init__(self, base_url="https://swing-debug.preview.emergentagent.com"):
+    def __init__(self, base_url="https://golftech-ai.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         

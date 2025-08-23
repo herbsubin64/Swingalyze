@@ -3,7 +3,7 @@ import axios from 'axios';
 import VideoUploader from './components/VideoUploader';
 import './SwingAnalysis.css';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://swing-debug.preview.emergentagent.com';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://golftech-ai.preview.emergentagent.com';
 const API = `${BACKEND_URL}/api`;
 
 interface Upload {
