@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './com
 import { Button } from './components/ui/button';
 import { TrendingUp, Trophy, Zap, Target, LineChart, BarChart3, Settings, User, Download } from 'lucide-react';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://swing-error-help.preview.emergentagent.com';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const StatsTab = ({ userStats }) => (
