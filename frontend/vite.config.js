@@ -11,7 +11,10 @@ export default defineConfig({
     outDir: 'dist', 
     target: 'es2017', 
     sourcemap: true, 
-    assetsInlineLimit: 0 
+    assetsInlineLimit: 0,
+    rollupOptions: {
+      external: ['@mediapipe/pose']
+    }
   },
   optimizeDeps: {
     include: [
