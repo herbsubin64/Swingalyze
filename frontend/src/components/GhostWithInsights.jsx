@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react'
 import * as poseDetection from '@tensorflow-models/pose-detection'
-import * as tf from '@tensorflow/tfjs-core'
-import '@tensorflow/tfjs-backend-webgl'
+import * as tf from '@tensorflow/tfjs'
 import { InsightsProvider, useInsightsBus } from '../lib/insightsBus.jsx'
 import { analyzeFrame, emptyAnalysis } from '../lib/swingAnalyzer.jsx'
 
