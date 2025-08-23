@@ -147,7 +147,7 @@ function Player(){
 
     if (mirror) { ctx.save(); ctx.translate(c.width,0); ctx.scale(-1,1) }
     let poses=[]
-    try{ poses=await d.estimatePoses(v,{flipHorizontal:mirror}) }catch{}
+    try{ poses=await d.estimatePoses(v) }catch{}
     const pose = poses?.[0]
 
     // overlay
