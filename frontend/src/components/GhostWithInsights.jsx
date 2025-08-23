@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react'
 import * as tf from '@tensorflow/tfjs'
 import '@tensorflow/tfjs-backend-webgl'
-import { InsightsProvider, useInsightsBus } from '../lib/insightsBus.jsx'
+import { useInsightsBus } from '../lib/insightsBus.jsx'
 import { analyzeFrame, emptyAnalysis } from '../lib/swingAnalyzer.jsx'
 
 const EDGES = [
