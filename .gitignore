@@ -77,7 +77,27 @@ agenthub/agents/youtube/db
 .cache/
 
 # Mobile development
-android-sdk/ backend/uploads/ghost_skeleton_844a0f38-a8fb-4d27-819c-d592053e7cb5.mp4
-backend/uploads/ghost_skeleton_844a0f38-a8fb-4d27-819c-d592053e7cb5.mp4
-backend/uploads/ghost_skeleton_327cc177-4044-466e-a3d9-a76aacfb65c7.mp4
-backend/uploads/ghost_skeleton_cae4f531-805e-436d-b03a-6f80e7049600.mp4
+android-sdk/
+
+# SwingAlyze specific - Video uploads and processing files
+backend/uploads/
+backend/uploads/*.mp4
+backend/uploads/*.mov
+backend/uploads/*.avi
+backend/uploads/*.webm
+backend/uploads/*.mkv
+
+# Large files and media
+*.mp4
+*.mov
+*.avi
+*.webm
+*.mkv
+
+# Testing artifacts
+*test*.py
+swingalyze_*.py
+comprehensive_*.py
+
+# Yarn lock files (keep only in main directories)
+yarn.lock
