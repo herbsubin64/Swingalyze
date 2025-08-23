@@ -11,18 +11,10 @@ export default defineConfig({
     outDir: 'dist', 
     target: 'es2017', 
     sourcemap: true, 
-    assetsInlineLimit: 0,
-    rollupOptions: {
-      external: ['@mediapipe/pose', '@tensorflow/tfjs-backend-webgpu']
-    }
+    assetsInlineLimit: 0
   },
   optimizeDeps: {
-    include: [
-      '@tensorflow/tfjs-core',
-      '@tensorflow/tfjs-backend-webgl',
-      '@tensorflow-models/pose-detection'
-    ],
-    exclude: ['@mediapipe/pose', '@tensorflow/tfjs-backend-webgpu']
+    include: ['@tensorflow/tfjs']
   },
   server: { 
     host: '0.0.0.0', 
