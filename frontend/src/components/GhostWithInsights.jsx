@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react'
-import * as poseDetection from '@tensorflow-models/pose-detection'
 import * as tf from '@tensorflow/tfjs'
+import '@tensorflow/tfjs-backend-webgl'
 import { InsightsProvider, useInsightsBus } from '../lib/insightsBus.jsx'
 import { analyzeFrame, emptyAnalysis } from '../lib/swingAnalyzer.jsx'
 
@@ -14,6 +14,72 @@ const EDGES = [
   ['left_hip','left_knee'], ['left_knee','left_ankle'],
   ['right_hip','right_knee'], ['right_knee','right_ankle']
 ]
+
+// MoveNet pose detection without MediaPipe
+class MoveNetDetector {
+  constructor() {
+    this.model = null
+    this.inputShape = [1, 192, 192, 3] // MoveNet Lightning input size
+  }
+
+  async load() {
+    try {
+      await tf.ready()
+      // Load MoveNet Lightning model
+      this.model = await tf.loadGraphModel('https://tfhub.dev/google/tfjs-model/movenet/singlepose/lightning/4')
+      console.log('MoveNet model loaded successfully')
+      return true
+    } catch (error) {
+      console.error('Failed to load MoveNet model:', error)
+      return false
+    }
+  }
+
+  async estimatePoses(video) {
+    if (!this.model || !video) return []
+
+    try {
+      // Preprocess video frame
+      const tensor = tf.tidy(() => {
+        const imageTensor = tf.browser.fromPixels(video)
+        const resized = tf.image.resizeBilinear(imageTensor, [192, 192])
+        const normalized = tf.cast(resized, 'int32')
+        return tf.expandDims(normalized, 0)
+      })
+
+      // Run inference
+      const prediction = await this.model.predict(tensor).data()
+      tensor.dispose()
+
+      // Convert to pose format
+      const keypoints = []
+      const keypointNames = [
+        'nose', 'left_eye', 'right_eye', 'left_ear', 'right_ear',
+        'left_shoulder', 'right_shoulder', 'left_elbow', 'right_elbow',
+        'left_wrist', 'right_wrist', 'left_hip', 'right_hip',
+        'left_knee', 'right_knee', 'left_ankle', 'right_ankle'
+      ]
+
+      for (let i = 0; i < 17; i++) {
+        const y = prediction[i * 3] * video.videoHeight
+        const x = prediction[i * 3 + 1] * video.videoWidth
+        const score = prediction[i * 3 + 2]
+        
+        keypoints.push({
+          name: keypointNames[i],
+          x: x,
+          y: y,
+          score: score
+        })
+      }
+
+      return keypoints.length > 0 ? [{ keypoints }] : []
+    } catch (error) {
+      console.error('Pose estimation error:', error)
+      return []
+    }
+  }
+}
 
 export default function GhostWithInsights(){
   return (
