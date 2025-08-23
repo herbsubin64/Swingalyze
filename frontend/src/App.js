@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import axios from 'axios';
 import SwingAnalyzer from './components/SwingAnalyzer.js';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card.js';
-import { Button } from './components/ui/button';
+import { Button } from './components/ui/button.js';
 import { TrendingUp, Trophy, Zap, Target, LineChart, BarChart3, Settings, User, Download } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
