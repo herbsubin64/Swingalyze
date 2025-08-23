@@ -1,19 +1,12 @@
 import React from 'react'
-import GhostWithInsights from './components/GhostWithInsights.jsx'
-import InsightsPanel from './components/InsightsPanel.jsx'
-import { InsightsProvider } from './lib/insightsBus.jsx'
+import GhostSkeletonPlayer from './components/GhostSkeletonPlayer.jsx'
 
 export default function App(){
   return (
-    <InsightsProvider>
-      <div className="container">
-        <h1 className="title">Swingalyze – Ghost + Insights</h1>
-        <p className="hint">Upload or record. We auto-detect Address ▸ Top ▸ Impact, compute motion metrics, and flag common faults.</p>
-        <div className="grid">
-          <div className="card"><GhostWithInsights/></div>
-          <div className="card"><InsightsPanel/></div>
-        </div>
-      </div>
-    </InsightsProvider>
+    <div className="container">
+      <h1 style={{margin:'6px 0 8px'}}>Swing Ghost Skeleton</h1>
+      <p className="hint">Upload a clip or use your camera. Video will auto-play and the skeleton overlay should appear within ~1–2s.</p>
+      <GhostSkeletonPlayer />
+    </div>
   )
 }
