@@ -1,5 +1,5 @@
 import React from 'react'
-import { useInsightsBus } from '../lib/insightsBus.js'
+import { useInsightsBus } from '../lib/insightsBus.jsx'
 
 export default function InsightsPanel(){
   const { state } = useInsightsBus()
