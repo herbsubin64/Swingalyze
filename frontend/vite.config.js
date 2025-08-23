@@ -10,13 +10,23 @@ export default defineConfig({
     sourcemap: true, 
     assetsInlineLimit: 0 
   },
+  optimizeDeps: {
+    include: [
+      '@tensorflow/tfjs-core',
+      '@tensorflow/tfjs-backend-webgl',
+      '@tensorflow/tfjs-backend-webgpu',
+      '@tensorflow-models/pose-detection',
+      '@mediapipe/pose'
+    ],
+    exclude: []
+  },
   server: { 
     host: '0.0.0.0', 
     port: 3000,
     allowedHosts: ['swingdebug.preview.emergentagent.com'],
     hmr: {
       port: 3000,
-      host: 'localhost'
+      host: 'swingdebug.preview.emergentagent.com'
     }
   },
   preview: { 
