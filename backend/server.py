@@ -1,4 +1,5 @@
-from fastapi import FastAPI, APIRouter, UploadFile, File, HTTPException
+from fastapi import FastAPI, APIRouter, UploadFile, File, HTTPException, Form
+from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -9,10 +10,16 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 import uuid
 from datetime import datetime
+import shutil
+import aiofiles
 
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
+
+# Create uploads directory if it doesn't exist
+UPLOAD_DIR = ROOT_DIR / "uploads" / "videos"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
@@ -20,7 +27,10 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 # Create the main app without a prefix
-app = FastAPI(title="SwingAnalyze API", description="Golf Swing Analysis Platform")
+app = FastAPI(title="SwingAnalyze API", description="Golf Swing Analysis Platform with Video Support")
+
+# Mount static files for video serving
+app.mount("/uploads", StaticFiles(directory=str(ROOT_DIR / "uploads")), name="uploads")
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
@@ -36,6 +46,7 @@ class SwingAnalysis(BaseModel):
     distance: Optional[float] = None
     accuracy_rating: Optional[int] = None  # 1-10 scale
     notes: Optional[str] = None
+    video_url: Optional[str] = None  # Path to uploaded video
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 class SwingAnalysisCreate(BaseModel):
@@ -60,13 +71,68 @@ class PlayerStats(BaseModel):
 # API Routes
 @api_router.get("/")
 async def root():
-    return {"message": "SwingAnalyze API - Golf Swing Analysis Platform"}
+    return {"message": "SwingAnalyze API - Golf Swing Analysis Platform with Video Support"}
 
 @api_router.post("/analysis", response_model=SwingAnalysis)
-async def create_swing_analysis(analysis: SwingAnalysisCreate):
-    """Create a new swing analysis record"""
-    analysis_dict = analysis.dict()
-    analysis_obj = SwingAnalysis(**analysis_dict)
+async def create_swing_analysis(
+    player_name: str = Form(...),
+    club_type: str = Form(...),
+    swing_speed: Optional[float] = Form(None),
+    ball_speed: Optional[float] = Form(None),
+    distance: Optional[float] = Form(None),
+    accuracy_rating: Optional[int] = Form(None),
+    notes: Optional[str] = Form(None),
+    video: Optional[UploadFile] = File(None)
+):
+    """Create a new swing analysis record with optional video upload"""
+    
+    # Generate unique ID for this analysis
+    analysis_id = str(uuid.uuid4())
+    video_url = None
+    
+    # Handle video upload if provided
+    if video:
+        # Validate video file type
+        allowed_types = ["video/mp4", "video/avi", "video/mov", "video/quicktime", "video/x-msvideo"]
+        if video.content_type not in allowed_types:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid video format. Allowed formats: MP4, AVI, MOV. Got: {video.content_type}"
+            )
+        
+        # Check file size (limit to 100MB)
+        max_size = 100 * 1024 * 1024  # 100MB in bytes
+        video_content = await video.read()
+        if len(video_content) > max_size:
+            raise HTTPException(status_code=400, detail="Video file too large. Maximum size is 100MB.")
+        
+        # Generate unique filename
+        file_extension = Path(video.filename).suffix
+        video_filename = f"{analysis_id}_{video.filename}"
+        video_path = UPLOAD_DIR / video_filename
+        
+        # Save video file
+        try:
+            async with aiofiles.open(video_path, 'wb') as f:
+                await f.write(video_content)
+            video_url = f"/uploads/videos/{video_filename}"
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to save video: {str(e)}")
+    
+    # Create analysis object
+    analysis_data = {
+        "id": analysis_id,
+        "player_name": player_name,
+        "club_type": club_type,
+        "swing_speed": swing_speed,
+        "ball_speed": ball_speed,
+        "distance": distance,
+        "accuracy_rating": accuracy_rating,
+        "notes": notes,
+        "video_url": video_url
+    }
+    
+    analysis_obj = SwingAnalysis(**analysis_data)
     
     result = await db.swing_analyses.insert_one(analysis_obj.dict())
     if not result.inserted_id:
@@ -94,11 +160,28 @@ async def get_swing_analysis(analysis_id: str):
 
 @api_router.delete("/analysis/{analysis_id}")
 async def delete_swing_analysis(analysis_id: str):
-    """Delete a swing analysis record"""
+    """Delete a swing analysis record and associated video"""
+    # Get the analysis first to find video file
+    analysis = await db.swing_analyses.find_one({"id": analysis_id})
+    if not analysis:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+    
+    # Delete video file if it exists
+    if analysis.get("video_url"):
+        video_filename = analysis["video_url"].split("/")[-1]
+        video_path = UPLOAD_DIR / video_filename
+        if video_path.exists():
+            try:
+                video_path.unlink()
+            except Exception as e:
+                logging.warning(f"Failed to delete video file {video_path}: {str(e)}")
+    
+    # Delete from database
     result = await db.swing_analyses.delete_one({"id": analysis_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Analysis not found")
-    return {"message": "Analysis deleted successfully"}
+    
+    return {"message": "Analysis and associated video deleted successfully"}
 
 @api_router.get("/players")
 async def get_players():
