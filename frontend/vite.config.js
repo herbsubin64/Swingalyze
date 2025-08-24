@@ -4,7 +4,15 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: '/',
-  build: { outDir: 'dist', target: 'es2017', sourcemap: true, assetsInlineLimit: 0 },
+  build: { 
+    outDir: 'dist', 
+    target: 'es2017', 
+    sourcemap: true, 
+    assetsInlineLimit: 0,
+    rollupOptions: {
+      external: ['@tensorflow/tfjs-backend-webgpu']
+    }
+  },
   server: { 
     host: '0.0.0.0', 
     port: 3000,
