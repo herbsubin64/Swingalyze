@@ -220,7 +220,7 @@ const NewAnalysis = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {clubTypes.map((club) => (
-                      <SelectItem key={club} value={club || ""}>{club}</SelectItem>
+                      <SelectItem key={club} value={club}>{club}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
