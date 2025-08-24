@@ -274,7 +274,7 @@ const NewAnalysis = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {[1,2,3,4,5,6,7,8,9,10].map((rating) => (
-                      <SelectItem key={rating} value={rating.toString() || ""}>{rating}</SelectItem>
+                      <SelectItem key={rating} value={rating.toString()}>{rating}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
