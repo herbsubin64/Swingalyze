@@ -52,7 +52,11 @@ export default function GhostSkeletonPlayer(){
         setStatus('Loading MoveNet model…')
         const detector = await poseDetection.createDetector(
           poseDetection.SupportedModels.MoveNet,
-          { modelType:'lightning' }
+          { 
+            modelType:'lightning',
+            enableSmoothing: true,
+            modelUrl: 'https://tfhub.dev/google/tfjs-model/movenet/singlepose/lightning/4'
+          }
         )
         if (!cancelled) {
           detectorRef.current = detector
