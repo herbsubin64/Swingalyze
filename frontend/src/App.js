@@ -508,7 +508,7 @@ const PlayerStats = () => {
             </SelectTrigger>
             <SelectContent>
               {players.map((player) => (
-                <SelectItem key={player} value={player}>{player}</SelectItem>
+                <SelectItem key={player} value={player || ""}>{player}</SelectItem>
               ))}
             </SelectContent>
           </Select>
