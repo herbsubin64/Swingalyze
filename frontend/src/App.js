@@ -112,6 +112,12 @@ const Dashboard = () => {
                     <div className="flex items-center gap-2">
                       <h3 className="font-medium">{analysis.player_name}</h3>
                       <Badge variant="outline">{analysis.club_type}</Badge>
+                      {analysis.video_url && (
+                        <Badge variant="secondary" className="flex items-center gap-1">
+                          <Video className="w-3 h-3" />
+                          Video
+                        </Badge>
+                      )}
                     </div>
                     <div className="text-sm text-gray-600 mt-1">
                       {analysis.swing_speed && `Swing: ${analysis.swing_speed} mph`}
