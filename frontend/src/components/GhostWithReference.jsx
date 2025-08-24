@@ -155,12 +155,16 @@ export default function GhostWithReference(){
     try{ 
       const poses=await d.estimatePoses(v,{flipHorizontal:mirror})
       pose=poses?.[0] 
+      if (pose && pose.keypoints) {
+        console.log('Pose detected with', pose.keypoints.length, 'keypoints')
+      }
     }catch(e){
       console.warn('Pose estimation error:', e)
     }
     
-    if (pose){ 
+    if (pose && pose.keypoints && pose.keypoints.length > 0){ 
       drawSkeleton(ctx,c,pose.keypoints,color,opacity) 
+      console.log('Drew user skeleton')
     }
 
     // REFERENCE ghost overlay (optional)
@@ -182,16 +186,20 @@ export default function GhostWithReference(){
         console.warn('Reference pose estimation error:', e)
       }
       
-      if (rPose){ 
+      if (rPose && rPose.keypoints && rPose.keypoints.length > 0){ 
         drawSkeleton(ctx,c,rPose.keypoints,refColor,refOpacity) 
+        console.log('Drew reference skeleton')
       }
     }
 
     // Swing analysis (push every ~5 frames)
-    if (pose){
+    if (pose && pose.keypoints && pose.keypoints.length > 0){
       const tMs = Math.round(v.currentTime*1000)
       const next = analyzeFrame(analysis, pose, tMs)
-      if (next.frames.length % 5 === 0) setState(next)
+      if (next.frames.length % 5 === 0) {
+        setState(next)
+        console.log('Updated analysis:', next.summary.frames, 'frames')
+      }
       setAnalysis(next)
     }
 
