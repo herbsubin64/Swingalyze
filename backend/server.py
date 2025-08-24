@@ -225,7 +225,7 @@ async def get_swing_analysis(analysis_id: str):
 
 @api_router.delete("/analysis/{analysis_id}")
 async def delete_swing_analysis(analysis_id: str):
-    """Delete a swing analysis record and associated video"""
+    """Delete a swing analysis record and associated files"""
     # Get the analysis first to find video file
     analysis = await db.swing_analyses.find_one({"id": analysis_id})
     if not analysis:
@@ -241,12 +241,20 @@ async def delete_swing_analysis(analysis_id: str):
             except Exception as e:
                 logging.warning(f"Failed to delete video file {video_path}: {str(e)}")
     
+    # Delete analysis results files if they exist
+    results_pattern = RESULTS_DIR / f"{analysis_id}_*"
+    for result_file in results_pattern.parent.glob(results_pattern.name):
+        try:
+            result_file.unlink()
+        except Exception as e:
+            logging.warning(f"Failed to delete result file {result_file}: {str(e)}")
+    
     # Delete from database
     result = await db.swing_analyses.delete_one({"id": analysis_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Analysis not found")
     
-    return {"message": "Analysis and associated video deleted successfully"}
+    return {"message": "Analysis and associated files deleted successfully"}
 
 @api_router.get("/players")
 async def get_players():
