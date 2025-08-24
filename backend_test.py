@@ -3,6 +3,8 @@ import sys
 import json
 from datetime import datetime
 import time
+import io
+import os
 
 class SwingAnalyzeAPITester:
     def __init__(self, base_url="https://swingfix.preview.emergentagent.com"):
