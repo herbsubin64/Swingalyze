@@ -55,6 +55,8 @@ class SwingAnalysis(BaseModel):
     accuracy_rating: Optional[int] = None  # 1-10 scale
     notes: Optional[str] = None
     video_url: Optional[str] = None  # Path to uploaded video
+    analysis_results: Optional[Dict[str, Any]] = None  # AI analysis results
+    analysis_status: str = "pending"  # pending, processing, completed, failed
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 class SwingAnalysisCreate(BaseModel):
