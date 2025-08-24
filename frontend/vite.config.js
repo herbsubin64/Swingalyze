@@ -4,7 +4,26 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: '/',
-  build: { outDir: 'dist', target: 'es2017', sourcemap: true, assetsInlineLimit: 0 },
+  define: {
+    global: 'globalThis',
+  },
+  build: { 
+    outDir: 'dist', 
+    target: 'es2017', 
+    sourcemap: true, 
+    assetsInlineLimit: 0,
+    rollupOptions: {
+      external: ['@tensorflow/tfjs-backend-webgpu', '@mediapipe/pose']
+    }
+  },
+  optimizeDeps: {
+    include: [
+      '@tensorflow/tfjs-core',
+      '@tensorflow/tfjs-backend-webgl',
+      '@tensorflow-models/pose-detection'
+    ],
+    exclude: ['@tensorflow/tfjs-backend-webgpu', '@mediapipe/pose']
+  },
   server: { 
     host: '0.0.0.0', 
     port: 3000,
