@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react'
-import * as tf from '@tensorflow/tfjs'
+import * as poseDetection from '@tensorflow-models/pose-detection'
+import * as tf from '@tensorflow/tfjs-core'
+import '@tensorflow/tfjs-backend-webgl'
 
 const EDGES = [
   ['left_eye','right_eye'], ['nose','left_eye'], ['nose','right_eye'],
@@ -12,13 +14,6 @@ const EDGES = [
   ['right_hip','right_knee'], ['right_knee','right_ankle']
 ]
 
-const KEYPOINT_NAMES = [
-  'nose', 'left_eye', 'right_eye', 'left_ear', 'right_ear',
-  'left_shoulder', 'right_shoulder', 'left_elbow', 'right_elbow',
-  'left_wrist', 'right_wrist', 'left_hip', 'right_hip',
-  'left_knee', 'right_knee', 'left_ankle', 'right_ankle'
-]
-
 const styles = {
   btn:{ padding:'10px 14px', borderRadius:10, border:'1px solid #2a3442', background:'#16202c', color:'#e9eef4', cursor:'pointer' },
   label:{ padding:'10px 14px', borderRadius:10, border:'1px solid #2a3442', background:'#101a26', color:'#e9eef4', cursor:'pointer' },
@@ -28,7 +23,7 @@ const styles = {
 export default function GhostSkeletonPlayer(){
   const videoRef = useRef(null)
   const canvasRef = useRef(null)
-  const modelRef = useRef(null)
+  const detectorRef = useRef(null)
   const rafRef = useRef(0)
   const objectUrlRef = useRef(null)
   const [status, setStatus] = useState('Initializing…')
@@ -46,28 +41,28 @@ export default function GhostSkeletonPlayer(){
 
   useEffect(()=>()=>{ if(objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current) },[])
 
-  // Init TF + MoveNet model directly
+  // Init TF + model once
   useEffect(()=>{
     let cancelled=false
     ;(async ()=>{
       try {
-        setStatus('Loading TensorFlow…')
+        setStatus('Loading TF backend…')
+        await tf.setBackend('webgl')
         await tf.ready()
-        
         setStatus('Loading MoveNet model…')
-        // Load MoveNet Lightning directly from TensorFlow Hub
-        const modelUrl = 'https://tfhub.dev/google/tfjs-model/movenet/singlepose/lightning/4'
-        const model = await tf.loadGraphModel(modelUrl)
-        
+        const detector = await poseDetection.createDetector(
+          poseDetection.SupportedModels.MoveNet,
+          { modelType:'lightning' }
+        )
         if (!cancelled) {
-          modelRef.current = model
+          detectorRef.current = detector
           setStatus('Model ready ✓')
-          toast('Ghost skeleton ready ✓')
+          toast('Model ready ✓')
         }
       } catch (e) {
-        console.error('TF/MoveNet load failed', e)
+        console.error('TF init/model load failed', e)
         setStatus('Model load failed (see console)')
-        toast('Model load failed – check console')
+        toast('Model load failed – open console')
       }
     })()
     return ()=>{ cancelled=true }
@@ -84,53 +79,23 @@ export default function GhostSkeletonPlayer(){
 
   // Draw loop tied to video playing
   const loop = useCallback(async ()=>{
-    const v = videoRef.current, c = canvasRef.current, model = modelRef.current
-    if (!v || !c || !model || v.readyState < 2) { 
-      rafRef.current = requestAnimationFrame(loop)
-      return 
-    }
-    
+    const v = videoRef.current, c = canvasRef.current, d = detectorRef.current
+    if (!v || !c || !d || v.readyState < 2) { rafRef.current = requestAnimationFrame(loop); return }
     fitCanvas()
     const ctx = c.getContext('2d')
     ctx.clearRect(0,0,c.width,c.height)
 
     if (mirror) { ctx.save(); ctx.translate(c.width,0); ctx.scale(-1,1) }
-    
     try {
-      // Preprocess video frame for MoveNet
-      const tensor = tf.tidy(() => {
-        const imageTensor = tf.browser.fromPixels(v)
-        const resized = tf.image.resizeBilinear(imageTensor, [192, 192])
-        const normalized = tf.cast(resized, 'int32')
-        return tf.expandDims(normalized, 0)
-      })
-
-      // Run inference
-      const prediction = await model.predict(tensor).data()
-      tensor.dispose()
-
-      // Convert to keypoints
-      const keypoints = []
-      for (let i = 0; i < 17; i++) {
-        const y = prediction[i * 3] * v.videoHeight
-        const x = prediction[i * 3 + 1] * v.videoWidth
-        const score = prediction[i * 3 + 2]
-        
-        keypoints.push({
-          name: KEYPOINT_NAMES[i],
-          x: x,
-          y: y,
-          score: score
-        })
-      }
-
-      if (keypoints.length > 0) {
-        drawSkeleton(ctx, c, keypoints)
+      const poses = await d.estimatePoses(v, { flipHorizontal: mirror })
+      const pose = poses?.[0]
+      if (pose && pose.keypoints?.length) {
+        drawSkeleton(ctx, c, pose.keypoints)
       }
     } catch (e) {
-      console.warn('pose estimation error', e)
+      // keep rendering, log once
+      console.warn('estimatePoses error', e)
     }
-    
     if (mirror) ctx.restore()
     rafRef.current = requestAnimationFrame(loop)
   }, [fitCanvas, mirror])
@@ -214,7 +179,7 @@ export default function GhostSkeletonPlayer(){
 }
 
 function drawSkeleton(ctx, c, keypoints){
-  // lines (green ghost skeleton)
+  // lines
   ctx.lineWidth = Math.max(2, c.width/640*3)
   ctx.strokeStyle = 'rgba(0,255,128,0.9)'
   EDGES.forEach(([a,b])=>{
@@ -224,7 +189,7 @@ function drawSkeleton(ctx, c, keypoints){
       ctx.beginPath(); ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y); ctx.stroke()
     }
   })
-  // joints (cyan dots)
+  // joints
   ctx.fillStyle = 'rgba(0,255,255,0.85)'
   const r = Math.max(2, c.width/640*4)
   keypoints.forEach(p=>{
