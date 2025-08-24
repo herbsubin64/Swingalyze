@@ -4,6 +4,14 @@ export default defineConfig({
   plugins: [react()],
   base: '/',
   build: { outDir: 'dist', target: 'es2017', sourcemap: true, assetsInlineLimit: 0 },
-  server: { host: true, port: 3000 },
-  preview: { host: true, port: 3000 }
+  server: { 
+    host: true, 
+    port: 3000,
+    allowedHosts: ['swingfix.preview.emergentagent.com', 'localhost', '127.0.0.1']
+  },
+  preview: { 
+    host: true, 
+    port: 3000,
+    allowedHosts: ['swingfix.preview.emergentagent.com', 'localhost', '127.0.0.1']
+  }
 })
