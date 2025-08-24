@@ -1,7 +1,7 @@
 import React from 'react'
 import GhostWithReference from './components/GhostWithReference.jsx'
 import InsightsPanel from './components/InsightsPanel.jsx'
-import { InsightsProvider } from './lib/insightsBus.js'
+import { InsightsProvider } from './lib/insightsBus.jsx'
 
 export default function App(){
   return (
