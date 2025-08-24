@@ -13,7 +13,7 @@ export default defineConfig({
     sourcemap: true, 
     assetsInlineLimit: 0,
     rollupOptions: {
-      external: ['@tensorflow/tfjs-backend-webgpu', '@mediapipe/pose']
+      external: ['@tensorflow/tfjs-backend-webgpu']
     }
   },
   optimizeDeps: {
