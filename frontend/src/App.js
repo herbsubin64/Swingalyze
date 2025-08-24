@@ -371,7 +371,7 @@ const AnalysesList = () => {
               <SelectContent>
                 <SelectItem value="">All players</SelectItem>
                 {players.map((player) => (
-                  <SelectItem key={player} value={player}>{player}</SelectItem>
+                  <SelectItem key={player} value={player || ""}>{player}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
