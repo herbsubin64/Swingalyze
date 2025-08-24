@@ -38,30 +38,30 @@ class SwingAnalyzeAPITester:
             return self.log_test("API Root", False, f"Error: {str(e)}")
 
     def test_create_analysis(self, player_name, club_type, swing_speed=None, ball_speed=None, distance=None, accuracy_rating=None, notes=None):
-        """Test creating a swing analysis"""
-        payload = {
+        """Test creating a swing analysis without video"""
+        data = {
             "player_name": player_name,
             "club_type": club_type
         }
         if swing_speed is not None:
-            payload["swing_speed"] = swing_speed
+            data["swing_speed"] = swing_speed
         if ball_speed is not None:
-            payload["ball_speed"] = ball_speed
+            data["ball_speed"] = ball_speed
         if distance is not None:
-            payload["distance"] = distance
+            data["distance"] = distance
         if accuracy_rating is not None:
-            payload["accuracy_rating"] = accuracy_rating
+            data["accuracy_rating"] = accuracy_rating
         if notes is not None:
-            payload["notes"] = notes
+            data["notes"] = notes
 
         try:
-            response = requests.post(f"{self.api_url}/analysis", json=payload)
+            response = requests.post(f"{self.api_url}/analysis", data=data)
             success = response.status_code == 200
             details = f"Status: {response.status_code}"
             
             if success:
-                data = response.json()
-                analysis_id = data.get('id')
+                response_data = response.json()
+                analysis_id = response_data.get('id')
                 if analysis_id:
                     self.created_analysis_ids.append(analysis_id)
                     details += f" | ID: {analysis_id}"
@@ -71,6 +71,117 @@ class SwingAnalyzeAPITester:
                 return self.log_test(f"Create Analysis ({player_name})", success, details)
         except Exception as e:
             return self.log_test(f"Create Analysis ({player_name})", False, f"Error: {str(e)}")
+
+    def create_test_video_file(self, filename="test_video.mp4", size_mb=1):
+        """Create a test video file for upload testing"""
+        # Create a simple test file that mimics a video
+        content = b"fake video content for testing" * (size_mb * 1024 * 32)  # Approximate size
+        return io.BytesIO(content)
+
+    def test_create_analysis_with_video(self, player_name, club_type, swing_speed=None, ball_speed=None, distance=None, accuracy_rating=None, notes=None):
+        """Test creating a swing analysis with video upload"""
+        data = {
+            "player_name": player_name,
+            "club_type": club_type
+        }
+        if swing_speed is not None:
+            data["swing_speed"] = swing_speed
+        if ball_speed is not None:
+            data["ball_speed"] = ball_speed
+        if distance is not None:
+            data["distance"] = distance
+        if accuracy_rating is not None:
+            data["accuracy_rating"] = accuracy_rating
+        if notes is not None:
+            data["notes"] = notes
+
+        # Create a test video file
+        test_video = self.create_test_video_file()
+        files = {
+            'video': ('test_swing.mp4', test_video, 'video/mp4')
+        }
+
+        try:
+            response = requests.post(f"{self.api_url}/analysis", data=data, files=files)
+            success = response.status_code == 200
+            details = f"Status: {response.status_code}"
+            
+            if success:
+                response_data = response.json()
+                analysis_id = response_data.get('id')
+                video_url = response_data.get('video_url')
+                if analysis_id:
+                    self.created_analysis_ids.append(analysis_id)
+                    details += f" | ID: {analysis_id}"
+                if video_url:
+                    details += f" | Video URL: {video_url}"
+                return self.log_test(f"Create Analysis with Video ({player_name})", success, details)
+            else:
+                details += f" | Response: {response.text[:200]}"
+                return self.log_test(f"Create Analysis with Video ({player_name})", success, details)
+        except Exception as e:
+            return self.log_test(f"Create Analysis with Video ({player_name})", False, f"Error: {str(e)}")
+
+    def test_video_file_validation(self):
+        """Test video file validation (format and size)"""
+        print("\n🎥 Testing Video File Validation...")
+        
+        # Test invalid video format
+        try:
+            data = {"player_name": "Test Player", "club_type": "Driver"}
+            invalid_file = io.BytesIO(b"fake content")
+            files = {'video': ('test.txt', invalid_file, 'text/plain')}
+            
+            response = requests.post(f"{self.api_url}/analysis", data=data, files=files)
+            success = response.status_code == 400
+            details = f"Status: {response.status_code}"
+            if not success and response.status_code == 200:
+                details += " | Expected 400 for invalid format"
+            self.log_test("Invalid Video Format Validation", success, details)
+        except Exception as e:
+            self.log_test("Invalid Video Format Validation", False, f"Error: {str(e)}")
+
+        # Test oversized video file (simulate 101MB file)
+        try:
+            data = {"player_name": "Test Player", "club_type": "Driver"}
+            large_file = self.create_test_video_file(size_mb=101)
+            files = {'video': ('large_video.mp4', large_file, 'video/mp4')}
+            
+            response = requests.post(f"{self.api_url}/analysis", data=data, files=files)
+            success = response.status_code == 400
+            details = f"Status: {response.status_code}"
+            if not success and response.status_code == 200:
+                details += " | Expected 400 for oversized file"
+            self.log_test("Oversized Video File Validation", success, details)
+        except Exception as e:
+            self.log_test("Oversized Video File Validation", False, f"Error: {str(e)}")
+
+    def test_video_serving(self, analysis_id_with_video=None):
+        """Test video file serving"""
+        if not analysis_id_with_video:
+            return self.log_test("Video Serving Test", False, "No analysis with video available")
+        
+        try:
+            # First get the analysis to find video URL
+            response = requests.get(f"{self.api_url}/analysis/{analysis_id_with_video}")
+            if response.status_code != 200:
+                return self.log_test("Video Serving Test", False, "Could not fetch analysis")
+            
+            analysis_data = response.json()
+            video_url = analysis_data.get('video_url')
+            
+            if not video_url:
+                return self.log_test("Video Serving Test", False, "No video URL in analysis")
+            
+            # Test video file serving
+            full_video_url = f"{self.base_url}{video_url}"
+            video_response = requests.get(full_video_url)
+            success = video_response.status_code == 200
+            details = f"Status: {video_response.status_code} | URL: {video_url}"
+            
+            return self.log_test("Video Serving Test", success, details)
+        except Exception as e:
+            return self.log_test("Video Serving Test", False, f"Error: {str(e)}")
 
     def test_get_all_analyses(self):
         """Test getting all analyses"""
