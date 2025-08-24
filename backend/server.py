@@ -191,6 +191,20 @@ async def create_swing_analysis(
     
     return analysis_obj
 
+@api_router.get("/analysis/{analysis_id}/ai-results")
+async def get_ai_analysis_results(analysis_id: str):
+    """Get AI analysis results for a specific swing analysis"""
+    analysis = await db.swing_analyses.find_one({"id": analysis_id})
+    if not analysis:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+    
+    return {
+        "analysis_id": analysis_id,
+        "status": analysis.get("analysis_status", "pending"),
+        "results": analysis.get("analysis_results"),
+        "video_url": analysis.get("video_url")
+    }
+
 @api_router.get("/analysis", response_model=List[SwingAnalysis])
 async def get_swing_analyses(player_name: Optional[str] = None, limit: int = 50):
     """Get swing analysis records, optionally filtered by player name"""
