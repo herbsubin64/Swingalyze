@@ -369,7 +369,7 @@ const AnalysesList = () => {
                 <SelectValue placeholder="All players" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All players</SelectItem>
+                <SelectItem value="all">All players</SelectItem>
                 {players.map((player) => (
                   <SelectItem key={player} value={player}>{player}</SelectItem>
                 ))}
