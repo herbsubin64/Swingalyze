@@ -116,7 +116,9 @@ async def process_video_analysis(analysis_id: str, video_path: str):
                 "analysis_results": {"error": str(e)}
             }}
         )
+@api_router.post("/analysis", response_model=SwingAnalysis)
 async def create_swing_analysis(
+    background_tasks: BackgroundTasks,
     player_name: str = Form(...),
     club_type: str = Form(...),
     swing_speed: Optional[float] = Form(None),
@@ -126,20 +128,21 @@ async def create_swing_analysis(
     notes: Optional[str] = Form(None),
     video: Optional[UploadFile] = File(None)
 ):
-    """Create a new swing analysis record with optional video upload"""
+    """Create a new swing analysis record with optional video upload and AI analysis"""
     
     # Generate unique ID for this analysis
     analysis_id = str(uuid.uuid4())
     video_url = None
+    video_path = None
     
     # Handle video upload if provided
     if video:
         # Validate video file type
-        allowed_types = ["video/mp4", "video/avi", "video/mov", "video/quicktime", "video/x-msvideo"]
+        allowed_types = ["video/mp4", "video/avi", "video/mov", "video/quicktime", "video/x-msvideo", "video/webm"]
         if video.content_type not in allowed_types:
             raise HTTPException(
                 status_code=400, 
-                detail=f"Invalid video format. Allowed formats: MP4, AVI, MOV. Got: {video.content_type}"
+                detail=f"Invalid video format. Allowed formats: MP4, AVI, MOV, WebM. Got: {video.content_type}"
             )
         
         # Check file size (limit to 100MB)
@@ -149,7 +152,7 @@ async def create_swing_analysis(
             raise HTTPException(status_code=400, detail="Video file too large. Maximum size is 100MB.")
         
         # Generate unique filename
-        file_extension = Path(video.filename).suffix
+        file_extension = Path(video.filename).suffix or ".mp4"
         video_filename = f"{analysis_id}_{video.filename}"
         video_path = UPLOAD_DIR / video_filename
         
@@ -157,7 +160,7 @@ async def create_swing_analysis(
         try:
             async with aiofiles.open(video_path, 'wb') as f:
                 await f.write(video_content)
-            video_url = f"/uploads/videos/{video_filename}"
+            video_url = f"/uploads/{video_filename}"
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to save video: {str(e)}")
     
@@ -171,7 +174,9 @@ async def create_swing_analysis(
         "distance": distance,
         "accuracy_rating": accuracy_rating,
         "notes": notes,
-        "video_url": video_url
+        "video_url": video_url,
+        "analysis_status": "pending" if video else "completed",
+        "analysis_results": None
     }
     
     analysis_obj = SwingAnalysis(**analysis_data)
@@ -179,6 +184,10 @@ async def create_swing_analysis(
     result = await db.swing_analyses.insert_one(analysis_obj.dict())
     if not result.inserted_id:
         raise HTTPException(status_code=500, detail="Failed to create analysis")
+    
+    # If video was uploaded, start AI analysis in background
+    if video and video_path:
+        background_tasks.add_task(process_video_analysis, analysis_id, str(video_path))
     
     return analysis_obj
 
