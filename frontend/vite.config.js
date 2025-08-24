@@ -18,8 +18,7 @@ export default defineConfig({
       '@tensorflow/tfjs-core',
       '@tensorflow/tfjs-backend-webgl', 
       '@tensorflow-models/pose-detection'
-    ],
-    exclude: ['@tensorflow/tfjs-backend-webgpu', '@mediapipe/pose']
+    ]
   },
   server: { 
     host: '0.0.0.0', 
