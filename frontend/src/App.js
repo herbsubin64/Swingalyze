@@ -165,15 +165,23 @@ const NewAnalysis = () => {
     setError('');
 
     try {
-      const payload = {
-        ...formData,
-        swing_speed: formData.swing_speed ? parseFloat(formData.swing_speed) : null,
-        ball_speed: formData.ball_speed ? parseFloat(formData.ball_speed) : null,
-        distance: formData.distance ? parseFloat(formData.distance) : null,
-        accuracy_rating: formData.accuracy_rating ? parseInt(formData.accuracy_rating) : null
-      };
+      // Create FormData for multipart/form-data submission
+      const submitData = new FormData();
+      submitData.append('player_name', formData.player_name);
+      submitData.append('club_type', formData.club_type);
+      
+      if (formData.swing_speed) submitData.append('swing_speed', formData.swing_speed);
+      if (formData.ball_speed) submitData.append('ball_speed', formData.ball_speed);
+      if (formData.distance) submitData.append('distance', formData.distance);
+      if (formData.accuracy_rating) submitData.append('accuracy_rating', formData.accuracy_rating);
+      if (formData.notes) submitData.append('notes', formData.notes);
+      if (selectedVideo) submitData.append('video', selectedVideo);
 
-      await axios.post(`${API}/analysis`, payload);
+      await axios.post(`${API}/analysis`, submitData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       navigate('/analyses');
     } catch (error) {
       setError('Failed to save analysis. Please try again.');
