@@ -88,6 +88,7 @@ export default function GhostWithReference(){
           detectorRef.current=d
           refDetectorRef.current=d2
           setBusy(false)
+          setStatus('Models ready - pose detection active ✓')
           console.log('Pose detectors initialized successfully')
         }
       } catch (e) {
