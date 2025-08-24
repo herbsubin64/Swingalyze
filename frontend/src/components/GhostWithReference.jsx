@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState, useCallback } from 'react'
 import * as poseDetection from '@tensorflow-models/pose-detection'
 import * as tf from '@tensorflow/tfjs-core'
 import '@tensorflow/tfjs-backend-webgl'
-import { useInsightsBus } from '../lib/insightsBus.js'
-import { analyzeFrame, emptyAnalysis } from '../lib/swingAnalyzer.js'
+import { useInsightsBus } from '../lib/insightsBus.jsx'
+import { analyzeFrame, emptyAnalysis } from '../lib/swingAnalyzer.jsx'
 
 const EDGES = [
   ['left_eye','right_eye'], ['nose','left_eye'], ['nose','right_eye'],
