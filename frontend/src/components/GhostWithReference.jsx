@@ -46,8 +46,31 @@ export default function GhostWithReference(){
     ;(async()=>{
       try {
         setBusy(true)
-        await tf.setBackend('webgl')
-        await tf.ready()
+        // Try different backends in order of preference
+        let backendSet = false
+        
+        try {
+          await tf.setBackend('webgl')
+          await tf.ready()
+          backendSet = true
+          console.log('WebGL backend initialized successfully')
+        } catch (e) {
+          console.log('WebGL failed, trying CPU backend:', e)
+          try {
+            await tf.setBackend('cpu')
+            await tf.ready()
+            backendSet = true
+            console.log('CPU backend initialized successfully')
+          } catch (e2) {
+            console.error('All backends failed:', e2)
+          }
+        }
+
+        if (!backendSet) {
+          setBusy(false)
+          return
+        }
+
         const d = await poseDetection.createDetector(
           poseDetection.SupportedModels.MoveNet,
           { modelType:'SinglePose.Lightning' }
@@ -60,6 +83,7 @@ export default function GhostWithReference(){
           detectorRef.current=d
           refDetectorRef.current=d2
           setBusy(false)
+          console.log('Pose detectors initialized successfully')
         }
       } catch (e) {
         console.error('TF init failed', e)
