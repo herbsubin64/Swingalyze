@@ -11,10 +11,7 @@ export default defineConfig({
     outDir: 'dist', 
     target: 'es2017', 
     sourcemap: true, 
-    assetsInlineLimit: 0,
-    rollupOptions: {
-      external: ['@tensorflow/tfjs-backend-webgpu']
-    }
+    assetsInlineLimit: 0
   },
   optimizeDeps: {
     include: [
