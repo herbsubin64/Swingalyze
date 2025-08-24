@@ -1,10 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react'
 import * as poseDetection from '@tensorflow-models/pose-detection'
-import * as tf from '@tensorflow/tfjs-core'
-import '@tensorflow/tfjs-backend-webgl'
-import '@tensorflow/tfjs-backend-cpu'
-import { useInsightsBus } from '../lib/insightsBus.jsx'
-import { analyzeFrame, emptyAnalysis } from '../lib/swingAnalyzer.jsx'
+import { initTF } from '../lib/tf-init.js'
+import DiagnosticsHUD from './DiagnosticsHUD.jsx'
 
 const EDGES = [
   ['left_eye','right_eye'], ['nose','left_eye'], ['nose','right_eye'],
@@ -18,305 +15,134 @@ const EDGES = [
 ]
 
 export default function GhostWithReference(){
-  const videoRef = useRef(null)            // user video (or camera)
-  const refVideoRef = useRef(null)         // reference (pro) video (hidden)
-  const canvasRef = useRef(null)
-  const rafRef = useRef(0)
-  const detectorRef = useRef(null)
-  const refDetectorRef = useRef(null)
-  const [busy, setBusy] = useState(true)
-  const [status, setStatus] = useState('Loading models...')
-  const [mirror, setMirror] = useState(false)
-  const [lineWidth, setLineWidth] = useState(3)
-  const [opacity, setOpacity] = useState(0.9)
-  const [color, setColor] = useState('#00ff80')
-  const [showJoints, setShowJoints] = useState(true)
-  const [analysis, setAnalysis] = useState(emptyAnalysis())
-  const { setState } = useInsightsBus()
+  const userVideo=useRef(null), userCanvas=useRef(null)
+  const refVideo=useRef(null), refCanvas=useRef(null)
+  const detUser=useRef(null), detRef=useRef(null)
+  const rafRef=useRef(0)
+  const [status,setStatus]=useState('Initializing…')
+  const [backend,setBackend]=useState('')
+  const [fps,setFps]=useState(0)
+  const [poseFps,setPoseFps]=useState(0)
 
-  // Reference ghost controls
-  const [showRef, setShowRef] = useState(false)
-  const [refOpacity, setRefOpacity] = useState(0.65)
-  const [refColor, setRefColor] = useState('#ff7b7b')
-  const [refUrl, setRefUrl] = useState('/pro.mp4')   // place pro.mp4 in /public OR paste full https URL
-  const [timeOffsetMs, setTimeOffsetMs] = useState(0) // align ghost (positive = delay ref)
-  const [timeScale, setTimeScale] = useState(1)       // normalize tempo (ref speed)
+  // UI
+  const [userColor,setUserColor]=useState('#00ff80')
+  const [refColor,setRefColor]=useState('#ff7b7b')
+  const [opacity,setOpacity]=useState(0.9)
+  const [refOpacity,setRefOpacity]=useState(0.65)
+  const [refUrl,setRefUrl]=useState('/pro.mp4')
 
-  // Initialize TensorFlow and models
+  // Init TF + detectors (with fallback)
   useEffect(()=>{
     let cancelled=false
     ;(async()=>{
-      try {
-        setBusy(true)
-        // Try different backends in order of preference
-        let backendSet = false
-        
-        try {
-          await tf.setBackend('webgl')
-          await tf.ready()
-          backendSet = true
-          setStatus('WebGL backend ready ✓')
-          console.log('WebGL backend initialized successfully')
-        } catch (e) {
-          console.log('WebGL failed, trying CPU backend:', e)
-          try {
-            await tf.setBackend('cpu')
-            await tf.ready()
-            backendSet = true
-            setStatus('CPU backend ready ✓')
-            console.log('CPU backend initialized successfully')
-          } catch (e2) {
-            console.error('All backends failed:', e2)
-            setStatus('Backend initialization failed')
-          }
-        }
-
-        if (!backendSet) {
-          setBusy(false)
-          return
-        }
-
-        const d = await poseDetection.createDetector(
-          poseDetection.SupportedModels.MoveNet,
-          { modelType:'SinglePose.Lightning' }
-        )
-        const d2 = await poseDetection.createDetector(
-          poseDetection.SupportedModels.MoveNet,
-          { modelType:'SinglePose.Lightning' }
-        )
-        if (!cancelled){ 
-          detectorRef.current=d
-          refDetectorRef.current=d2
-          setBusy(false)
-          setStatus('Models ready - pose detection active ✓')
-          console.log('Pose detectors initialized successfully')
-        }
-      } catch (e) {
-        console.error('TF init failed', e)
-        setBusy(false)
+      try{
+        setStatus('Selecting TF backend…')
+        const b = await initTF({ prefer:'webgl' })
+        if (cancelled) return
+        setBackend(b)
+        setStatus('Loading MoveNet (user/ref)…')
+        const d1 = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet,{modelType:'SinglePose.Lightning'})
+        const d2 = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet,{modelType:'SinglePose.Lightning'})
+        if (cancelled) return
+        detUser.current = d1
+        detRef.current = d2
+        setStatus('Model ready ✓')
+      } catch (e){
+        console.error(e)
+        setStatus('TF init failed — see console')
       }
     })()
     return ()=>{ cancelled=true }
   },[])
 
-  // Canvas fitting
-  const fitCanvas = useCallback(()=>{
-    const v=videoRef.current, c=canvasRef.current
-    if(!v||!c||!v.videoWidth||!v.videoHeight) return
-    if(c.width!==v.videoWidth || c.height!==v.videoHeight){ 
-      c.width=v.videoWidth
-      c.height=v.videoHeight 
-    }
-  },[])
+  const fit=(v,c)=>{ if(!v||!c||!v.videoWidth||!v.videoHeight) return; if(c.width!==v.videoWidth||c.height!==v.videoHeight){ c.width=v.videoWidth; c.height=v.videoHeight } }
 
-  // Skeleton drawing function
-  const drawSkeleton=(ctx, c, kp, colorStr, alpha)=>{
-    ctx.lineWidth=Math.max(2, c.width/640*lineWidth)
-    ctx.strokeStyle=colorStr
-    ctx.globalAlpha=alpha
-    
+  const drawSkeleton=(ctx,c,kp,color,alpha)=>{
+    ctx.lineWidth=Math.max(2,c.width/640*3); ctx.strokeStyle=color; ctx.globalAlpha=alpha
     EDGES.forEach(([a,b])=>{
       const p1=kp.find(k=>k.name===a), p2=kp.find(k=>k.name===b)
-      if(p1?.score>0.35 && p2?.score>0.35){ 
-        ctx.beginPath()
-        ctx.moveTo(p1.x,p1.y)
-        ctx.lineTo(p2.x,p2.y)
-        ctx.stroke() 
-      }
+      if(p1?.score>0.35 && p2?.score>0.35){ ctx.beginPath(); ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y); ctx.stroke() }
     })
-    
-    if (showJoints){
-      ctx.fillStyle='rgba(0,255,255,0.85)'
-      const r=Math.max(2,c.width/640*4)
-      kp.forEach(p=>{ 
-        if(p.score>0.45){ 
-          ctx.beginPath()
-          ctx.arc(p.x,p.y,r,0,Math.PI*2)
-          ctx.fill() 
-        } 
-      })
-    }
     ctx.globalAlpha=1
   }
 
-  const loop = useCallback(async ()=>{
-    const v=videoRef.current, c=canvasRef.current, d=detectorRef.current
-    if(!v||!c||!d||v.readyState<2){ 
-      rafRef.current=requestAnimationFrame(loop)
-      return 
-    }
-    
-    fitCanvas()
-    const ctx=c.getContext('2d')
-    ctx.clearRect(0,0,c.width,c.height)
-    
-    if (mirror){ 
-      ctx.save()
-      ctx.translate(c.width,0)
-      ctx.scale(-1,1) 
+  const loop=useCallback(async()=>{
+    const t0=performance.now()
+    const v=userVideo.current, c=userCanvas.current, d=detUser.current
+    const rv=refVideo.current, rc=refCanvas.current, dr=detRef.current
+    if(!v||!c||!d||v.readyState<2){ rafRef.current=requestAnimationFrame(loop); return }
+    fit(v,c); const ctx=c.getContext('2d'); ctx.clearRect(0,0,c.width,c.height)
+
+    let p0=null, p1=null
+    try{ const poses=await d.estimatePoses(v); p0=poses?.[0] }catch(e){ console.warn('user estimatePoses',e); setStatus('Pose failed (user)') }
+    if(p0){ drawSkeleton(ctx,c,p0.keypoints,userColor,opacity) }
+
+    if(rv&&rc&&dr&&rv.readyState>=2){
+      fit(rv,rc); const rctx=rc.getContext('2d'); rctx.clearRect(0,0,rc.width,rc.height)
+      try{ const poses=await dr.estimatePoses(rv); p1=poses?.[0] }catch(e){ console.warn('ref estimatePoses',e) }
+      if(p1){ drawSkeleton(rctx,rc,p1.keypoints,refColor,refOpacity) }
     }
 
-    // USER pose detection and drawing
-    let pose=null
-    try{ 
-      const poses=await d.estimatePoses(v,{flipHorizontal:mirror})
-      pose=poses?.[0] 
-      if (pose && pose.keypoints) {
-        console.log('Pose detected with', pose.keypoints.length, 'keypoints')
-      }
-    }catch(e){
-      console.warn('Pose estimation error:', e)
-    }
-    
-    if (pose && pose.keypoints && pose.keypoints.length > 0){ 
-      drawSkeleton(ctx,c,pose.keypoints,color,opacity) 
-      console.log('Drew user skeleton')
-    }
+    // update rates
+    const t1=performance.now()
+    setFps(prev=>0.9*prev + 0.1*(1000/(t1-t0)))
+    const hadPose = (p0||p1) ? 1 : 0
+    setPoseFps(prev=>0.9*prev + 0.1*(hadPose ? (1000/(t1-t0)) : 0))
 
-    // REFERENCE ghost overlay (optional)
-    if (showRef && refDetectorRef.current && refVideoRef.current?.readyState>=2){
-      const rv = refVideoRef.current
-      // Keep reference playback roughly aligned to user: t_ref ≈ t_user * timeScale + offset
-      const tUser = v.currentTime*1000
-      const targetMs = (tUser * timeScale) + timeOffsetMs
-      const clamped = Math.max(0, Math.min(rv.duration*1000 - 30, targetMs))
-      if (Math.abs(rv.currentTime*1000 - clamped) > 40){ 
-        rv.currentTime = clamped/1000 
-      } // soft sync
-      
-      let rPose=null
-      try{ 
-        const r=await refDetectorRef.current.estimatePoses(rv,{flipHorizontal:false})
-        rPose=r?.[0] 
-      }catch(e){
-        console.warn('Reference pose estimation error:', e)
-      }
-      
-      if (rPose && rPose.keypoints && rPose.keypoints.length > 0){ 
-        drawSkeleton(ctx,c,rPose.keypoints,refColor,refOpacity) 
-        console.log('Drew reference skeleton')
-      }
-    }
-
-    // Swing analysis (push every ~5 frames)
-    if (pose && pose.keypoints && pose.keypoints.length > 0){
-      const tMs = Math.round(v.currentTime*1000)
-      const next = analyzeFrame(analysis, pose, tMs)
-      if (next.frames.length % 5 === 0) {
-        setState(next)
-        console.log('Updated analysis:', next.summary.frames, 'frames')
-      }
-      setAnalysis(next)
-    }
-
-    if (mirror) ctx.restore()
     rafRef.current=requestAnimationFrame(loop)
-  },[fitCanvas, mirror, lineWidth, opacity, color, showJoints, showRef, refOpacity, refColor, timeOffsetMs, timeScale, analysis, setState])
+  },[userColor,refColor,opacity,refOpacity])
 
-  // Video event handlers
   useEffect(()=>{
-    const v=videoRef.current
+    const v=userVideo.current
     if(!v) return
-    const onPlay=()=>{ 
-      cancelAnimationFrame(rafRef.current)
-      rafRef.current=requestAnimationFrame(loop) 
-    }
-    const onPause=()=>cancelAnimationFrame(rafRef.current)
-    v.addEventListener('play',onPlay)
-    v.addEventListener('pause',onPause)
-    v.addEventListener('ended',onPause)
-    return ()=>{ 
-      v.removeEventListener('play',onPlay)
-      v.removeEventListener('pause',onPause)
-      v.removeEventListener('ended',onPause)
-      cancelAnimationFrame(rafRef.current) 
-    }
+    const onPlay=()=>{ cancelAnimationFrame(rafRef.current); setStatus('Analyzing…'); rafRef.current=requestAnimationFrame(loop) }
+    const onPause=()=>{ cancelAnimationFrame(rafRef.current); setStatus('Paused') }
+    v.addEventListener('play',onPlay); v.addEventListener('pause',onPause); v.addEventListener('ended',onPause)
+    return ()=>{ v.removeEventListener('play',onPlay); v.removeEventListener('pause',onPause); v.removeEventListener('ended',onPause); cancelAnimationFrame(rafRef.current) }
   },[loop])
 
-  // UI Actions
-  const onFile=(e)=>{
-    const file=e.target.files?.[0]
-    if(!file) return
-    const url=URL.createObjectURL(file)
-    const v=videoRef.current
-    v.srcObject=null
-    v.src=url
-    v.muted=true
-    v.playsInline=true
-    setAnalysis(emptyAnalysis())
-    v.onloadedmetadata=()=>v.play().catch(()=>{})
+  const onFile=e=>{
+    const f=e.target.files?.[0]; if(!f) return
+    const url=URL.createObjectURL(f)
+    const v=userVideo.current; v.srcObject=null; v.src=url; v.muted=true; v.playsInline=true
+    v.onloadedmetadata=()=>v.play().catch(()=>setStatus('Press ▶ to play'))
   }
-  
   const startCamera=async()=>{
-    try {
-      const stream=await navigator.mediaDevices.getUserMedia({ 
-        video:{ facingMode:'environment' }, 
-        audio:false 
-      })
-      const v=videoRef.current
-      v.src=''
-      v.srcObject=stream
-      v.muted=true
-      v.playsInline=true
-      setAnalysis(emptyAnalysis())
-      await v.play().catch(()=>{})
-    } catch (e) {
-      console.error('Camera access error:', e)
-    }
+    try{
+      const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false})
+      const v=userVideo.current; v.src=''; v.srcObject=s; v.muted=true; v.playsInline=true; await v.play()
+    }catch(e){ console.error('camera error',e); setStatus('Allow camera permissions') }
   }
-  
-  const loadReference=()=>{
-    const rv=refVideoRef.current
-    if (!rv) return
-    rv.src = refUrl
-    rv.crossOrigin = 'anonymous'
-    rv.loop = true
-    rv.muted = true
-    rv.playsInline = true
-    rv.onloadedmetadata = ()=>{ 
-      console.log('Reference video loaded for ghosting') 
-    }
-    // Autoplay reference silently in background (we hard-seek each frame anyway)
-    rv.play().catch((e)=>console.warn('Reference autoplay blocked:', e))
+  const loadRef=()=>{
+    const rv=refVideo.current; if(!rv) return
+    rv.src=refUrl; rv.crossOrigin='anonymous'; rv.loop=true; rv.muted=true; rv.playsInline=true
+    rv.play().catch(()=>{}) // ok if blocked; we still can seek/grab frames
   }
 
   return (
     <div>
       <div className="row" style={{marginBottom:10}}>
         <label className="label">Upload<input type="file" accept="video/*" onChange={onFile} style={{display:'none'}}/></label>
-        <button className="btn" onClick={startCamera} disabled={busy}>Camera</button>
+        <button className="btn" onClick={startCamera}>Camera</button>
         <span className="hint">{status}</span>
       </div>
-
       <div className="row" style={{marginBottom:10}}>
-        <label className="row hint">Color <input type="color" value={color} onChange={e=>setColor(e.target.value)} /></label>
-        <label className="row hint">Opacity <input type="range" min="0.2" max="1" step="0.05" value={opacity} onChange={e=>setOpacity(parseFloat(e.target.value))} /></label>
-        <label className="row hint">Width <input type="range" min="1" max="8" step="1" value={lineWidth} onChange={e=>setLineWidth(parseInt(e.target.value))} /></label>
-        <label className="row hint"><input type="checkbox" checked={showJoints} onChange={e=>setShowJoints(e.target.checked)} /> Joints</label>
-        <label className="row hint"><input type="checkbox" checked={mirror} onChange={e=>setMirror(e.target.checked)} /> Mirror</label>
+        <label className="row hint">User Color <input type="color" value={userColor} onChange={e=>setUserColor(e.target.value)}/></label>
+        <label className="row hint">User Opacity <input type="range" min="0.2" max="1" step="0.05" value={opacity} onChange={e=>setOpacity(parseFloat(e.target.value))}/></label>
+        <label className="row hint">Ref Color <input type="color" value={refColor} onChange={e=>setRefColor(e.target.value)}/></label>
+        <label className="row hint">Ref Opacity <input type="range" min="0.1" max="1" step="0.05" value={refOpacity} onChange={e=>setRefOpacity(parseFloat(e.target.value))}/></label>
       </div>
-
       <div className="row" style={{marginBottom:10}}>
-        <label className="row hint"><input type="checkbox" checked={showRef} onChange={e=>setShowRef(e.target.checked)} /> Show Reference</label>
-        <label className="row hint">Ref Opacity <input type="range" min="0.1" max="1" step="0.05" value={refOpacity} onChange={e=>setRefOpacity(parseFloat(e.target.value))} /></label>
-        <label className="row hint">Ref Color <input type="color" value={refColor} onChange={e=>setRefColor(e.target.value)} /></label>
-        <label className="row hint">Offset (ms) <input type="range" min="-1500" max="1500" step="50" value={timeOffsetMs} onChange={e=>setTimeOffsetMs(parseInt(e.target.value))} /></label>
-        <label className="row hint">Time Scale <input type="range" min="0.5" max="1.5" step="0.05" value={timeScale} onChange={e=>setTimeScale(parseFloat(e.target.value))} /></label>
-      </div>
-
-      <div className="row" style={{marginBottom:10}}>
-        <input style={{flex:'1 1 360px', padding:'10px', borderRadius:10, border:'1px solid #2a3442', background:'#0f1620', color:'#dfe9f7'}}
-               placeholder="Reference video URL (https) or /pro.mp4 in public/"
+        <input style={{flex:'1 1 300px',padding:'8px',borderRadius:10,border:'1px solid #2a3442',background:'#0f1620',color:'#dfe9f7'}}
+               placeholder="Reference video URL or /pro.mp4"
                value={refUrl} onChange={e=>setRefUrl(e.target.value)} />
-        <button className="btn" onClick={loadReference}>Load Reference</button>
-        <span className="hint">Tip: use a down-the-line pro 1080p MP4 for best results.</span>
+        <button className="btn" onClick={loadRef}>Load Ref</button>
       </div>
-
-      <div className="stage">
-        <video ref={videoRef} controls playsInline muted />
-        <canvas ref={canvasRef} />
-        <video ref={refVideoRef} style={{display:'none'}} playsInline muted />
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px'}}>
+        <div className="stage"><video ref={userVideo} controls playsInline muted/><canvas ref={userCanvas}/></div>
+        <div className="stage"><video ref={refVideo} controls playsInline muted/><canvas ref={refCanvas}/></div>
       </div>
+      <DiagnosticsHUD status={status} fps={fps} poseFps={poseFps} backend={backend}/>
     </div>
   )
 }
