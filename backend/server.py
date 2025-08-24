@@ -83,7 +83,39 @@ class PlayerStats(BaseModel):
 async def root():
     return {"message": "SwingAnalyze API - Golf Swing Analysis Platform with Video Support"}
 
-@api_router.post("/analysis", response_model=SwingAnalysis)
+async def process_video_analysis(analysis_id: str, video_path: str):
+    """Background task to analyze swing video using AI."""
+    try:
+        # Update status to processing
+        await db.swing_analyses.update_one(
+            {"id": analysis_id},
+            {"$set": {"analysis_status": "processing"}}
+        )
+        
+        # Run the AI analysis
+        analysis_results = await swing_analyzer.analyze_video(video_path, analysis_id)
+        
+        # Update database with results
+        await db.swing_analyses.update_one(
+            {"id": analysis_id},
+            {"$set": {
+                "analysis_status": "completed",
+                "analysis_results": analysis_results
+            }}
+        )
+        
+        print(f"✅ Analysis completed for {analysis_id}")
+        
+    except Exception as e:
+        print(f"❌ Analysis failed for {analysis_id}: {str(e)}")
+        # Update status to failed
+        await db.swing_analyses.update_one(
+            {"id": analysis_id},
+            {"$set": {
+                "analysis_status": "failed",
+                "analysis_results": {"error": str(e)}
+            }}
+        )
 async def create_swing_analysis(
     player_name: str = Form(...),
     club_type: str = Form(...),
