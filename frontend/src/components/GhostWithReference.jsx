@@ -25,6 +25,7 @@ export default function GhostWithReference(){
   const detectorRef = useRef(null)
   const refDetectorRef = useRef(null)
   const [busy, setBusy] = useState(true)
+  const [status, setStatus] = useState('Loading models...')
   const [mirror, setMirror] = useState(false)
   const [lineWidth, setLineWidth] = useState(3)
   const [opacity, setOpacity] = useState(0.9)
