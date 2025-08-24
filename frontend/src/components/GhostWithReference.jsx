@@ -285,7 +285,7 @@ export default function GhostWithReference(){
       <div className="row" style={{marginBottom:10}}>
         <label className="label">Upload<input type="file" accept="video/*" onChange={onFile} style={{display:'none'}}/></label>
         <button className="btn" onClick={startCamera} disabled={busy}>Camera</button>
-        <span className="hint">{busy?'Loading model…':'Model ready'}</span>
+        <span className="hint">{status}</span>
       </div>
 
       <div className="row" style={{marginBottom:10}}>
