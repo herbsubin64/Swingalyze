@@ -323,7 +323,7 @@ const AnalysesList = () => {
     try {
       setLoading(true);
       const [analysesRes, playersRes] = await Promise.all([
-        axios.get(`${API}/analysis${selectedPlayer ? `?player_name=${selectedPlayer}` : ''}`),
+        axios.get(`${API}/analysis${selectedPlayer && selectedPlayer !== 'all' ? `?player_name=${selectedPlayer}` : ''}`),
         axios.get(`${API}/players`)
       ]);
       setAnalyses(analysesRes.data);
