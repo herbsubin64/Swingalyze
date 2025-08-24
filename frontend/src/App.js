@@ -10,7 +10,9 @@ import { Badge } from './components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import { Alert, AlertDescription } from './components/ui/alert';
 import { Separator } from './components/ui/separator';
-import { Trash2, TrendingUp, Target, Zap, BarChart3 } from 'lucide-react';
+import { Trash2, TrendingUp, Target, Zap, BarChart3, Video, Play } from 'lucide-react';
+import VideoUpload from './components/VideoUpload';
+import VideoPlayer from './components/VideoPlayer';
 import './App.css';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
