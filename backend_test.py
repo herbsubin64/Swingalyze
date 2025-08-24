@@ -312,33 +312,53 @@ class SwingAnalyzeAPITester:
 
     def run_comprehensive_test(self):
         """Run all tests in sequence"""
-        print("🏌️ Starting SwingAnalyze API Comprehensive Testing")
-        print("=" * 60)
+        print("🏌️ Starting SwingAnalyze API Comprehensive Testing with Video Support")
+        print("=" * 70)
         
         # Test API root
         self.test_api_root()
         
         print("\n🔍 Testing CRUD Operations...")
         
-        # Create test analyses
+        # Create test analyses without video
         test_players = [
             ("John Doe", "Driver", 95.5, 140.2, 280, 8, "Great drive down the fairway"),
             ("Jane Smith", "7-Iron", 85.0, 125.5, 165, 9, "Perfect approach shot"),
             ("Mike Johnson", "Pitching Wedge", 75.2, 110.8, 95, 7, "Good short game"),
-            ("John Doe", "3-Wood", 88.5, 132.1, 245, 6, "Slight fade"),
-            ("Jane Smith", "Driver", 92.0, 138.5, 275, 8, "Long and straight")
         ]
         
         for player_data in test_players:
             self.test_create_analysis(*player_data)
             time.sleep(0.1)  # Small delay between requests
         
+        print("\n🎥 Testing Video Upload Functionality...")
+        
+        # Create test analyses with video
+        video_test_players = [
+            ("Video Test Player", "Driver", 100.0, 145.0, 290, 8, "Driver swing with video"),
+            ("Jane Smith", "3-Wood", 88.5, 132.1, 245, 6, "3-Wood with video analysis")
+        ]
+        
+        video_analysis_ids = []
+        for player_data in video_test_players:
+            success = self.test_create_analysis_with_video(*player_data)
+            if success and self.created_analysis_ids:
+                video_analysis_ids.append(self.created_analysis_ids[-1])
+            time.sleep(0.1)
+        
+        # Test video file validation
+        self.test_video_file_validation()
+        
+        # Test video serving
+        if video_analysis_ids:
+            self.test_video_serving(video_analysis_ids[0])
+        
         # Test getting all analyses
         self.test_get_all_analyses()
         
         # Test filtering by player
         self.test_get_analyses_by_player("John Doe")
-        self.test_get_analyses_by_player("Jane Smith")
+        self.test_get_analyses_by_player("Video Test Player")
         
         # Test getting specific analysis (if we have IDs)
         if self.created_analysis_ids:
@@ -349,6 +369,7 @@ class SwingAnalyzeAPITester:
         
         # Test player stats
         self.test_get_player_stats("John Doe")
+        self.test_get_player_stats("Video Test Player")
         self.test_get_player_stats("Jane Smith")
         self.test_get_player_stats("Mike Johnson")
         
@@ -358,16 +379,21 @@ class SwingAnalyzeAPITester:
         # Test error handling
         self.test_error_handling()
         
-        # Test delete functionality (delete one analysis)
+        # Test delete functionality with video cleanup
+        if video_analysis_ids:
+            print("\n🗑️ Testing Video Cleanup on Delete...")
+            self.test_delete_analysis(video_analysis_ids[0])
+        
+        # Test delete regular analysis
         if self.created_analysis_ids:
             self.test_delete_analysis(self.created_analysis_ids[-1])
         
         # Print final results
-        print("\n" + "=" * 60)
+        print("\n" + "=" * 70)
         print(f"📊 Test Results: {self.tests_passed}/{self.tests_run} tests passed")
         
         if self.tests_passed == self.tests_run:
-            print("🎉 All tests passed! API is working correctly.")
+            print("🎉 All tests passed! API with Video Support is working correctly.")
             return 0
         else:
             print(f"⚠️  {self.tests_run - self.tests_passed} tests failed. Please check the issues above.")
