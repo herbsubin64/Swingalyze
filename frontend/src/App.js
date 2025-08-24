@@ -195,6 +195,14 @@ const NewAnalysis = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleVideoSelect = (video) => {
+    setSelectedVideo(video);
+  };
+
+  const handleRemoveVideo = () => {
+    setSelectedVideo(null);
+  };
+
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-6">
