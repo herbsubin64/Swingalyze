@@ -380,7 +380,7 @@ const AnalysesList = () => {
         <CardContent>
           {analyses.length === 0 ? (
             <p className="text-gray-500 text-center py-8">
-              {selectedPlayer ? `No analyses found for ${selectedPlayer}` : 'No analyses found'}
+              {selectedPlayer && selectedPlayer !== 'all' ? `No analyses found for ${selectedPlayer}` : 'No analyses found'}
             </p>
           ) : (
             <div className="space-y-4">
