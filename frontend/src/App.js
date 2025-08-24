@@ -144,6 +144,7 @@ const NewAnalysis = () => {
     accuracy_rating: '',
     notes: ''
   });
+  const [selectedVideo, setSelectedVideo] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
