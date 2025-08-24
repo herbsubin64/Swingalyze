@@ -68,7 +68,7 @@ export default function GhostSkeletonPlayer(){
           const detector = await window.poseDetection.createDetector(
             window.poseDetection.SupportedModels.MoveNet,
             { 
-              modelType:'lightning',
+              modelType: window.poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
               enableSmoothing: true
             }
           )
