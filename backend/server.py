@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, UploadFile, File, HTTPException, Form
+from fastapi import FastAPI, APIRouter, UploadFile, File, HTTPException, Form, BackgroundTasks
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -7,19 +7,24 @@ import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 import uuid
 from datetime import datetime
 import shutil
 import aiofiles
+import asyncio
+
+from swing_analyzer import SwingAnalyzer
 
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 # Create uploads directory if it doesn't exist
-UPLOAD_DIR = ROOT_DIR / "uploads" / "videos"
+UPLOAD_DIR = ROOT_DIR / "uploads" 
+RESULTS_DIR = ROOT_DIR / "uploads" / "results"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
@@ -27,13 +32,16 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 # Create the main app without a prefix
-app = FastAPI(title="SwingAnalyze API", description="Golf Swing Analysis Platform with Video Support")
+app = FastAPI(title="SwingAnalyze API", description="AI-Powered Golf Swing Analysis Platform")
 
-# Mount static files for video serving
-app.mount("/uploads", StaticFiles(directory=str(ROOT_DIR / "uploads")), name="uploads")
+# Mount static files for video serving and results
+app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
+
+# Initialize swing analyzer
+swing_analyzer = SwingAnalyzer()
 
 
 # Define Models
