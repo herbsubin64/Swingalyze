@@ -417,6 +417,12 @@ const AnalysesList = () => {
                       <div className="flex items-center gap-2 mb-2">
                         <h3 className="font-medium text-lg">{analysis.player_name}</h3>
                         <Badge variant="outline">{analysis.club_type}</Badge>
+                        {analysis.video_url && (
+                          <Badge variant="secondary" className="flex items-center gap-1">
+                            <Video className="w-3 h-3" />
+                            Video
+                          </Badge>
+                        )}
                       </div>
                       
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -450,6 +456,17 @@ const AnalysesList = () => {
                         <div className="mt-2">
                           <span className="text-gray-600 text-sm">Notes:</span>
                           <p className="text-sm mt-1">{analysis.notes}</p>
+                        </div>
+                      )}
+
+                      {/* Video Player */}
+                      {analysis.video_url && (
+                        <div className="mt-4">
+                          <VideoPlayer
+                            videoUrl={`${BACKEND_URL}${analysis.video_url}`}
+                            playerName={analysis.player_name}
+                            clubType={analysis.club_type}
+                          />
                         </div>
                       )}
 
