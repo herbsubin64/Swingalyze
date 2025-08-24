@@ -1,7 +1,4 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react'
-import * as poseDetection from '@tensorflow-models/pose-detection'
-import * as tf from '@tensorflow/tfjs-core'
-import '@tensorflow/tfjs-backend-webgl'
 
 const EDGES = [
   ['left_eye','right_eye'], ['nose','left_eye'], ['nose','right_eye'],
@@ -41,27 +38,45 @@ export default function GhostSkeletonPlayer(){
 
   useEffect(()=>()=>{ if(objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current) },[])
 
-  // Init TF + model once
+  // Init TF + model once using global objects
   useEffect(()=>{
     let cancelled=false
     ;(async ()=>{
       try {
-        setStatus('Loading TF backend…')
-        await tf.setBackend('webgl')
-        await tf.ready()
-        setStatus('Loading MoveNet model…')
-        const detector = await poseDetection.createDetector(
-          poseDetection.SupportedModels.MoveNet,
-          { 
-            modelType:'lightning',
-            enableSmoothing: true,
-            modelUrl: 'https://tfhub.dev/google/tfjs-model/movenet/singlepose/lightning/4'
+        // Wait for global TF objects to be available
+        if (typeof window.tf === 'undefined' || typeof window.poseDetection === 'undefined') {
+          setStatus('Waiting for TensorFlow.js to load...')
+          // Poll for availability
+          const checkLibraries = () => {
+            if (typeof window.tf !== 'undefined' && typeof window.poseDetection !== 'undefined') {
+              initializeDetector()
+            } else {
+              setTimeout(checkLibraries, 100)
+            }
           }
-        )
-        if (!cancelled) {
-          detectorRef.current = detector
-          setStatus('Model ready ✓')
-          toast('Model ready ✓')
+          checkLibraries()
+          return
+        }
+        
+        await initializeDetector()
+        
+        async function initializeDetector() {
+          setStatus('Loading TF backend…')
+          await window.tf.setBackend('webgl')
+          await window.tf.ready()
+          setStatus('Loading MoveNet model…')
+          const detector = await window.poseDetection.createDetector(
+            window.poseDetection.SupportedModels.MoveNet,
+            { 
+              modelType:'lightning',
+              enableSmoothing: true
+            }
+          )
+          if (!cancelled) {
+            detectorRef.current = detector
+            setStatus('Model ready ✓')
+            toast('Ghost skeleton ready ✓')
+          }
         }
       } catch (e) {
         console.error('TF init/model load failed', e)
