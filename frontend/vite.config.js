@@ -19,7 +19,7 @@ export default defineConfig({
   optimizeDeps: {
     include: [
       '@tensorflow/tfjs-core',
-      '@tensorflow/tfjs-backend-webgl',
+      '@tensorflow/tfjs-backend-webgl', 
       '@tensorflow-models/pose-detection'
     ],
     exclude: ['@tensorflow/tfjs-backend-webgpu', '@mediapipe/pose']

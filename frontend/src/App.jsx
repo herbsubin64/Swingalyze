@@ -1,12 +1,19 @@
 import React from 'react'
-import GhostSkeletonPlayer from './components/GhostSkeletonPlayer.jsx'
+import GhostWithReference from './components/GhostWithReference.jsx'
+import InsightsPanel from './components/InsightsPanel.jsx'
+import { InsightsProvider } from './lib/insightsBus.js'
 
 export default function App(){
   return (
-    <div className="container">
-      <h1 style={{margin:'6px 0 8px'}}>Swing Ghost Skeleton</h1>
-      <p className="hint">Upload a clip or use your camera. Video will auto-play and the skeleton overlay should appear within ~1–2s.</p>
-      <GhostSkeletonPlayer />
-    </div>
+    <InsightsProvider>
+      <div className="container">
+        <h1 className="title">Swingalyze – Ghost + Insights + Reference</h1>
+        <p className="hint">Upload or record. Optional: set a Reference URL (pro swing) and toggle "Show Reference" for a Greenside-style ghost overlay.</p>
+        <div className="grid">
+          <div className="card"><GhostWithReference/></div>
+          <div className="card"><InsightsPanel/></div>
+        </div>
+      </div>
+    </InsightsProvider>
   )
 }
