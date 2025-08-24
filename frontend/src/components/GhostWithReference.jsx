@@ -55,6 +55,7 @@ export default function GhostWithReference(){
           await tf.setBackend('webgl')
           await tf.ready()
           backendSet = true
+          setStatus('WebGL backend ready ✓')
           console.log('WebGL backend initialized successfully')
         } catch (e) {
           console.log('WebGL failed, trying CPU backend:', e)
@@ -62,9 +63,11 @@ export default function GhostWithReference(){
             await tf.setBackend('cpu')
             await tf.ready()
             backendSet = true
+            setStatus('CPU backend ready ✓')
             console.log('CPU backend initialized successfully')
           } catch (e2) {
             console.error('All backends failed:', e2)
+            setStatus('Backend initialization failed')
           }
         }
 
