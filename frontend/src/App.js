@@ -312,6 +312,13 @@ const NewAnalysis = () => {
               />
             </div>
 
+            {/* Video Upload Section */}
+            <VideoUpload
+              onVideoSelect={handleVideoSelect}
+              selectedVideo={selectedVideo}
+              onRemoveVideo={handleRemoveVideo}
+            />
+
             <div className="flex gap-3">
               <Button type="submit" disabled={saving} className="bg-green-600 hover:bg-green-700">
                 {saving ? 'Saving...' : 'Save Analysis'}
